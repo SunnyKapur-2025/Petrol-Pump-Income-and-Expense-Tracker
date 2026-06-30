@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetroTrack - Petrol Pump Income & Expense Tracker</title>
+<style>
+:root {
+  --primary: #1a5276;
+  --primary-light: #2980b9;
+  --accent: #e67e22;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --bg: #f4f6f9;
+  --card: #fff;
+  --text: #2c3e50;
+  --text-light: #7f8c8d;
+  --border: #dfe6e9;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--bg); color:var(--text); }
+
+/* Navigation */
+.nav-tabs { display:flex; background:var(--primary); overflow-x:auto; position:sticky; top:0; z-index:100; }
+.nav-tabs button { background:none; border:none; color:rgba(255,255,255,.7); padding:14px 22px; cursor:pointer; font-size:14px; white-space:nowrap; border-bottom:3px solid transparent; transition:.2s; }
+.nav-tabs button.active, .nav-tabs button:hover { color:#fff; border-bottom-color:var(--accent); background:rgba(255,255,255,.08); }
+
+/* Screens */
+.screen { display:none; padding:24px; max-width:1200px; margin:0 auto; }
+.screen.active { display:block; }
+
+/* Cards */
+.card { background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:24px; margin-bottom:20px; }
+.card h3 { margin-bottom:16px; color:var(--primary); font-size:16px; }
+
+/* Grid */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+@media(max-width:768px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+
+/* KPI Cards */
+.kpi { text-align:center; padding:20px; border-radius:10px; color:#fff; }
+.kpi .value { font-size:28px; font-weight:700; }
+.kpi .label { font-size:12px; opacity:.85; margin-top:4px; }
+.kpi.blue { background:linear-gradient(135deg,#2980b9,#1a5276); }
+.kpi.green { background:linear-gradient(135deg,#27ae60,#1e8449); }
+.kpi.orange { background:linear-gradient(135deg,#e67e22,#d35400); }
+.kpi.red { background:linear-gradient(135deg,#e74c3c,#c0392b); }
+
+/* Forms */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--text-light); }
+.form-group input, .form-group select { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; }
+.form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary-light); box-shadow:0 0 0 3px rgba(41,128,185,.15); }
+
+/* Buttons */
+.btn { padding:10px 24px; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; transition:.2s; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-light); }
+.btn-accent { background:var(--accent); color:#fff; }
+.btn-success { background:var(--success); color:#fff; }
+.btn-outline { background:none; border:2px solid var(--primary); color:var(--primary); }
+
+/* Tables */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:var(--bg); padding:10px 12px; text-align:left; font-weight:600; color:var(--text-light); border-bottom:2px solid var(--border); }
+td { padding:10px 12px; border-bottom:1px solid var(--border); }
+tr:hover td { background:#f8f9fa; }
+
+/* Denomination Grid */
+.denom-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.denom-item { border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+.denom-item .note { font-weight:700; color:var(--primary); font-size:16px; }
+.denom-item input { width:60px; text-align:center; margin-top:6px; padding:6px; border:1px solid var(--border); border-radius:6px; }
+
+/* Chart placeholders */
+.chart-placeholder { background:linear-gradient(135deg,#ecf0f1,#dfe6e9); border-radius:10px; height:220px; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:14px; position:relative; overflow:hidden; }
+.chart-placeholder .bar-group { display:flex; align-items:flex-end; gap:8px; height:180px; padding:0 20px; }
+.chart-placeholder .bar { width:30px; border-radius:4px 4px 0 0; transition:.3s; }
+
+/* Login screen */
+.login-overlay { position:fixed; inset:0; background:linear-gradient(135deg,#1a5276,#2980b9); display:flex; align-items:center; justify-content:center; z-index:200; }
+.login-box { background:#fff; border-radius:16px; padding:40px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.login-box h1 { color:var(--primary); margin-bottom:4px; }
+.login-box .subtitle { color:var(--text-light); margin-bottom:24px; font-size:14px; }
+.login-box .logo { font-size:48px; margin-bottom:16px; }
+
+/* Tags */
+.tag { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.tag-cash { background:#fdebd0; color:#d35400; }
+.tag-upi { background:#d5f5e3; color:#1e8449; }
+.tag-card { background:#d6eaf8; color:#1a5276; }
+
+/* Toggle */
+.toggle-group { display:flex; background:var(--bg); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+.toggle-group button { flex:1; padding:8px 16px; border:none; background:none; cursor:pointer; font-size:13px; }
+.toggle-group button.active { background:var(--primary); color:#fff; }
+
+/* Sidebar info */
+.info-panel { background:#eaf2f8; border-radius:10px; padding:16px; margin-bottom:16px; border-left:4px solid var(--primary-light); }
+.info-panel h4 { color:var(--primary); margin-bottom:6px; }
+.info-panel p { font-size:13px; color:var(--text-light); line-height:1.5; }
+
+/* Header bar */
+.header-bar { background:var(--primary); color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; }
+.header-bar h2 { font-size:18px; display:flex; align-items:center; gap:10px; }
+.header-bar .user-info { display:flex; align-items:center; gap:12px; font-size:13px; }
+.header-bar .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+/* Status indicator */
+.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+.status-dot.active { background:var(--success); }
+.status-dot.inactive { background:var(--danger); }
+
+.hidden { display:none !important; }
+.mt-16 { margin-top:16px; }
+.mb-8 { margin-bottom:8px; }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.flex-between { display:flex; justify-content:space-between; align-items:center; }
+.amount { font-weight:700; color:var(--success); }
+.amount::before { content:'₹'; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-overlay" id="loginScreen">
+  <div class="login-box text-center">
+    <div class="logo">⛽</div>
+    <h1>PetroTrack</h1>
+    <p class="subtitle">Petrol Pump Income & Expense Tracker</p>
+    <div class="form-group">
+      <label style="text-align:left">Login As</label>
+      <select id="loginRole">
+        <option value="master">🔑 Master / Owner Login</option>
+        <option value="user">👤 Operator / Staff Login</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label style="text-align:left">Username</label>
+      <input type="text" placeholder="Enter username" value="owner@pump1">
+    </div>
+    <div class="form-group">
+      <label style="text-align:left">Password</label>
+      <input type="password" placeholder="Enter password" value="••••••••">
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:14px" onclick="doLogin()">Login →</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-light)">Powered by PetroTrack India &bull; v1.0</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden">
+  <!-- Header -->
+  <div class="header-bar">
+    <h2>⛽ PetroTrack <span style="font-size:12px;opacity:.7;font-weight:400" id="roleLabel">Master</span></h2>
+    <div class="user-info">
+      <span id="pumpName">HP Petrol Pump - Jaipur</span>
+      <div class="avatar">SK</div>
+      <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;padding:6px 12px;font-size:12px" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-tabs" id="navTabs">
+    <button class="active" onclick="showScreen('dashboard',this)">📊 Dashboard</button>
+    <button onclick="showScreen('dailySales',this)">⛽ Daily Sales Entry</button>
+    <button onclick="showScreen('cashDenom',this)">💵 Cash Denomination</button>
+    <button onclick="showScreen('expenses',this)">📤 Expenses</button>
+    <button onclick="showScreen('reports',this)" id="navReports">📋 Reports</button>
+    <button onclick="showScreen('gst',this)" id="navGST">🏛️ GST & Tax</button>
+    <button onclick="showScreen('excel',this)" id="navExcel">📥 Excel Integration</button>
+    <button onclick="showScreen('users',this)" id="navUsers">👥 User Management</button>
+    <button onclick="showScreen('settings',this)" id="navSettings">⚙️ Settings</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="dashboard">
+    <div class="flex-between mb-8">
+      <h2>Dashboard Overview</h2>
+      <div>
+        <select style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+          <option>Today - 30 Jun 2026</option>
+          <option>Yesterday</option>
+          <option>This Week</option>
+          <option>This Month</option>
+          <option>Custom Range</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="kpi blue">
+        <div class="value">₹4,85,200</div>
+        <div class="label">Today's Total Sales</div>
+      </div>
+      <div class="kpi green">
+        <div class="value">₹2,10,500</div>
+        <div class="label">Cash Collection</div>
+      </div>
+      <div class="kpi orange">
+        <div class="value">₹2,74,700</div>
+        <div class="label">Digital (UPI/Card)</div>
+      </div>
+      <div class="kpi red">
+        <div class="value">₹32,400</div>
+        <div class="label">Today's Expenses</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Fuel-wise Sales -->
+      <div class="card">
+        <h3>Fuel-wise Sales Today</h3>
+        <table>
+          <tr><th>Fuel</th><th>Litres</th><th>Rate/L</th><th>Amount</th></tr>
+          <tr><td>Petrol (MS)</td><td>3,200 L</td><td>₹104.61</td><td class="amount">3,34,752</td></tr>
+          <tr><td>Diesel (HSD)</td><td>1,580 L</td><td>₹90.62</td><td class="amount">1,43,180</td></tr>
+          <tr><td>CNG</td><td>85 Kg</td><td>₹85.56</td><td class="amount">7,268</td></tr>
+        </table>
+        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
+          <strong>Total</strong><strong class="amount" style="font-size:18px">4,85,200</strong>
+        </div>
+      </div>
+
+      <!-- Payment Mode Breakdown -->
+      <div class="card">
+        <h3>Collection by Payment Mode</h3>
+        <div class="chart-placeholder">
+          <div class="bar-group">
+            <div style="text-align:center">
+              <div class="bar" style="height:140px;background:var(--accent);width:50px"></div>
+              <div style="font-size:11px;margin-top:6px;font-weight:600">Cash<br>₹2.1L</div>
+            </div>
+            <div style="text-align:center">
+              <div class="bar" style="height:100px;background:var(--success);width:50px"></div>
+              <div style="font-size:11px;margin-top:6px;font-weight:600">UPI<br>₹1.5L</div>
+            </div>
+            <div style="text-align:center">
+              <div class="bar" style="height:80px;background:var(--primary-light);width:50px"></div>
+              <div style="font-size:11px;margin-top:6px;font-weight:600">Card<br>₹1.2L</div>
+            </div>
+            <div style="text-align:center">
+              <div class="bar" style="height:20px;background:#8e44ad;width:50px"></div>
+              <div style="font-size:11px;margin-top:6px;font-weight:600">Credit<br>₹0.1L</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Cash Denomination Summary -->
+      <div class="card">
+        <h3>💵 Cash Denomination Summary</h3>
+        <table>
+          <tr><th>Denomination</th><th>Count</th><th>Amount</th></tr>
+          <tr><td>₹500 Notes</td><td>320</td><td class="amount">1,60,000</td></tr>
+          <tr><td>₹200 Notes</td><td>85</td><td class="amount">17,000</td></tr>
+          <tr><td>₹100 Notes</td><td>180</td><td class="amount">18,000</td></tr>
+          <tr><td>₹50 Notes</td><td>120</td><td class="amount">6,000</td></tr>
+          <tr><td>₹20 Notes</td><td>200</td><td class="amount">4,000</td></tr>
+          <tr><td>₹10 Notes/Coins</td><td>350</td><td class="amount">3,500</td></tr>
+          <tr><td>₹5 & ₹20 Coins</td><td>400</td><td class="amount">2,000</td></tr>
+        </table>
+        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
+          <strong>Total Cash</strong><strong class="amount" style="font-size:18px">2,10,500</strong>
+        </div>
+      </div>
+
+      <!-- Recent Expenses -->
+      <div class="card">
+        <h3>📤 Recent Expenses</h3>
+        <table>
+          <tr><th>Description</th><th>Category</th><th>Amount</th></tr>
+          <tr><td>Electricity Bill</td><td>Utilities</td><td style="color:var(--danger);font-weight:600">₹12,500</td></tr>
+          <tr><td>Staff Salary - Ram</td><td>Salary</td><td style="color:var(--danger);font-weight:600">₹8,000</td></tr>
+          <tr><td>Pump Maintenance</td><td>Maintenance</td><td style="color:var(--danger);font-weight:600">₹5,400</td></tr>
+          <tr><td>Water Supply</td><td>Utilities</td><td style="color:var(--danger);font-weight:600">₹2,500</td></tr>
+          <tr><td>Stationery</td><td>Office</td><td style="color:var(--danger);font-weight:600">₹1,200</td></tr>
+          <tr><td>Tea/Snacks</td><td>Miscellaneous</td><td style="color:var(--danger);font-weight:600">₹2,800</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Weekly Trend -->
+    <div class="card">
+      <h3>📈 Weekly Sales Trend</h3>
+      <div class="chart-placeholder" style="height:180px">
+        <div class="bar-group">
+          <div style="text-align:center"><div class="bar" style="height:120px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Mon<br>₹4.2L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:130px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Tue<br>₹4.5L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:110px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Wed<br>₹3.9L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:140px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Thu<br>₹4.8L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:125px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Fri<br>₹4.3L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:150px;background:var(--accent);width:40px"></div><div style="font-size:10px;margin-top:4px">Sat<br>₹5.1L</div></div>
+          <div style="text-align:center"><div class="bar" style="height:145px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Sun<br>₹4.9L</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY SALES ENTRY -->
+  <div class="screen" id="dailySales">
+    <h2 style="margin-bottom:20px">⛽ Daily Sales Entry</h2>
+    <div class="info-panel">
+      <h4>📝 Operator Entry Screen</h4>
+      <p>Staff/operators enter shift-wise fuel sales and collections here. All entries are date & shift stamped automatically.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Shift & Pump Details</h3>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" value="2026-06-30">
+          </div>
+          <div class="form-group">
+            <label>Shift</label>
+            <select>
+              <option>Morning (6 AM - 2 PM)</option>
+              <option>Afternoon (2 PM - 10 PM)</option>
+              <option>Night (10 PM - 6 AM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nozzle / Dispenser</label>
+          <select>
+            <option>Nozzle 1 - Petrol (MS)</option>
+            <option>Nozzle 2 - Petrol (MS)</option>
+            <option>Nozzle 3 - Diesel (HSD)</option>
+            <option>Nozzle 4 - Diesel (HSD)</option>
+            <option>CNG Dispenser</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Opening Meter Reading</label>
+            <input type="number" placeholder="e.g. 45230" value="45230">
+          </div>
+          <div class="form-group">
+            <label>Closing Meter Reading</label>
+            <input type="number" placeholder="e.g. 46012" value="46012">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Total Litres Sold</label>
+            <input type="number" value="782" style="background:#eaf2f8;font-weight:700" readonly>
+          </div>
+          <div class="form-group">
+            <label>Rate per Litre (₹)</label>
+            <input type="number" value="104.61">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Total Sale Amount (₹)</label>
+          <input type="text" value="₹81,805.02" style="background:#d5f5e3;font-weight:700;font-size:18px" readonly>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>💳 Collection Breakdown</h3>
+        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px">Enter amount received through each payment mode</p>
+
+        <div class="form-group">
+          <label>💵 Cash Received (₹)</label>
+          <input type="number" placeholder="0" value="35000">
+        </div>
+        <div class="form-group">
+          <label>📱 UPI Received (₹) — PhonePe / GPay / Paytm / BHIM</label>
+          <input type="number" placeholder="0" value="28500">
+        </div>
+        <div class="form-group">
+          <label>💳 Card Payment Received (₹) — Debit / Credit</label>
+          <input type="number" placeholder="0" value="15305">
+        </div>
+        <div class="form-group">
+          <label>📒 Credit Sale (₹) — Fleet / Corporate Account</label>
+          <input type="number" placeholder="0" value="3000">
+        </div>
+        <div class="form-group">
+          <label>Total Collection (₹)</label>
+          <input type="text" value="₹81,805" style="background:#d5f5e3;font-weight:700;font-size:18px" readonly>
+        </div>
+        <div style="background:#d5f5e3;padding:10px;border-radius:8px;text-align:center;font-weight:600;color:var(--success)">
+          ✅ Collection matches Sale Amount — No shortage
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn btn-primary" style="flex:1">💾 Save Entry</button>
+          <button class="btn btn-outline">+ Add Another Nozzle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's entries -->
+    <div class="card">
+      <h3>Today's Entries</h3>
+      <table>
+        <tr><th>Time</th><th>Shift</th><th>Nozzle</th><th>Fuel</th><th>Litres</th><th>Amount</th><th>Cash</th><th>UPI</th><th>Card</th><th>Credit</th><th>Status</th></tr>
+        <tr>
+          <td>08:15 AM</td><td>Morning</td><td>Nozzle 1</td><td>Petrol</td><td>782</td>
+          <td class="amount">81,805</td>
+          <td><span class="tag tag-cash">₹35,000</span></td>
+          <td><span class="tag tag-upi">₹28,500</span></td>
+          <td><span class="tag tag-card">₹15,305</span></td>
+          <td>₹3,000</td>
+          <td style="color:var(--success)">✅ Matched</td>
+        </tr>
+        <tr>
+          <td>08:20 AM</td><td>Morning</td><td>Nozzle 3</td><td>Diesel</td><td>1,200</td>
+          <td class="amount">1,08,744</td>
+          <td><span class="tag tag-cash">₹45,000</span></td>
+          <td><span class="tag tag-upi">₹38,744</span></td>
+          <td><span class="tag tag-card">₹25,000</span></td>
+          <td>₹0</td>
+          <td style="color:var(--success)">✅ Matched</td>
+        </tr>
+        <tr>
+          <td>02:30 PM</td><td>Afternoon</td><td>Nozzle 2</td><td>Petrol</td><td>650</td>
+          <td class="amount">68,000</td>
+          <td><span class="tag tag-cash">₹30,000</span></td>
+          <td><span class="tag tag-upi">₹22,000</span></td>
+          <td><span class="tag tag-card">₹14,500</span></td>
+          <td>₹1,500</td>
+          <td style="color:var(--danger)">⚠️ Short ₹500</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CASH DENOMINATION -->
+  <div class="screen" id="cashDenom">
+    <h2 style="margin-bottom:20px">💵 Cash Denomination Entry</h2>
+    <div class="info-panel">
+      <h4>Cash Counting Sheet</h4>
+      <p>Enter the count of each denomination collected during the shift. This helps in daily cash reconciliation and bank deposit preparation.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Currency Notes</h3>
+        <div class="denom-grid">
+          <div class="denom-item">
+            <div class="note">₹500</div>
+            <div>Count</div>
+            <input type="number" value="320" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹1,60,000</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹200</div>
+            <div>Count</div>
+            <input type="number" value="85" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹17,000</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹100</div>
+            <div>Count</div>
+            <input type="number" value="180" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹18,000</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹50</div>
+            <div>Count</div>
+            <input type="number" value="120" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹6,000</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹20</div>
+            <div>Count</div>
+            <input type="number" value="200" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹4,000</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹10</div>
+            <div>Count</div>
+            <input type="number" value="350" onchange="calcDenom()">
+            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹3,500</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Coins</h3>
+          <div class="denom-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="denom-item">
+              <div class="note">₹20</div>
+              <div>Coins</div>
+              <input type="number" value="30">
+              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹600</div>
+            </div>
+            <div class="denom-item">
+              <div class="note">₹10</div>
+              <div>Coins</div>
+              <input type="number" value="50">
+              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹500</div>
+            </div>
+            <div class="denom-item">
+              <div class="note">₹5</div>
+              <div>Coins</div>
+              <input type="number" value="80">
+              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹400</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff">
+          <h3 style="color:#fff">Total Cash Summary</h3>
+          <div style="font-size:36px;font-weight:700;margin:16px 0">₹2,10,000</div>
+          <div style="display:flex;gap:20px;font-size:13px;opacity:.85">
+            <div>Notes: ₹2,08,500</div>
+            <div>Coins: ₹1,500</div>
+          </div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.3)">
+            <div class="flex-between" style="font-size:14px">
+              <span>Expected Cash (from sales):</span><span>₹2,10,500</span>
+            </div>
+            <div class="flex-between" style="font-size:14px;margin-top:8px">
+              <span>Difference:</span>
+              <span style="color:#e74c3c;font-weight:700">-₹500 (Short)</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-accent" style="flex:1">💾 Save Denomination</button>
+          <button class="btn" style="background:rgba(255,255,255,.9);border:1px solid var(--border)">🖨️ Print Slip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="screen" id="expenses">
+    <h2 style="margin-bottom:20px">📤 Expense Management</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Add New Expense</h3>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" value="2026-06-30">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select>
+              <option>Staff Salary</option>
+              <option>Electricity</option>
+              <option>Pump Maintenance</option>
+              <option>Rent</option>
+              <option>Water</option>
+              <option>Insurance</option>
+              <option>Vehicle Expense</option>
+              <option>Office Supplies</option>
+              <option>Fuel Purchase (from OMC)</option>
+              <option>Bank Charges</option>
+              <option>Government Fees / License</option>
+              <option>Miscellaneous</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" placeholder="e.g. Monthly electricity bill">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Payment Mode</label>
+            <select>
+              <option>Cash</option>
+              <option>Bank Transfer (NEFT/RTGS)</option>
+              <option>UPI</option>
+              <option>Cheque</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>GST Applicable?</label>
+          <select>
+            <option>No</option>
+            <option>Yes - 5%</option>
+            <option>Yes - 12%</option>
+            <option>Yes - 18%</option>
+            <option>Yes - 28%</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Bill / Invoice Upload</label>
+          <input type="file" style="padding:8px">
+        </div>
+        <button class="btn btn-primary">💾 Save Expense</button>
+      </div>
+
+      <div class="card">
+        <h3>Monthly Expense Summary - June 2026</h3>
+        <table>
+          <tr><th>Category</th><th>Amount</th><th>% of Total</th></tr>
+          <tr><td>Fuel Purchase (OMC)</td><td style="color:var(--danger);font-weight:600">₹38,50,000</td><td>89.2%</td></tr>
+          <tr><td>Staff Salary</td><td style="color:var(--danger);font-weight:600">₹1,20,000</td><td>2.8%</td></tr>
+          <tr><td>Electricity</td><td style="color:var(--danger);font-weight:600">₹45,000</td><td>1.0%</td></tr>
+          <tr><td>Maintenance</td><td style="color:var(--danger);font-weight:600">₹35,000</td><td>0.8%</td></tr>
+          <tr><td>Rent</td><td style="color:var(--danger);font-weight:600">₹50,000</td><td>1.2%</td></tr>
+          <tr><td>Others</td><td style="color:var(--danger);font-weight:600">₹2,15,000</td><td>5.0%</td></tr>
+        </table>
+        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
+          <strong>Total Expenses</strong><strong style="color:var(--danger);font-size:18px">₹43,15,000</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="screen" id="reports">
+    <h2 style="margin-bottom:20px">📋 Reports & Analytics</h2>
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">📊</div>
+        <h3 style="margin-bottom:4px">Daily Sales Report</h3>
+        <p style="font-size:12px;color:var(--text-light)">Fuel-wise, nozzle-wise, shift-wise breakdown</p>
+      </div>
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">💵</div>
+        <h3 style="margin-bottom:4px">Cash Collection Report</h3>
+        <p style="font-size:12px;color:var(--text-light)">Denomination-wise cash for any period</p>
+      </div>
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">💳</div>
+        <h3 style="margin-bottom:4px">Payment Mode Report</h3>
+        <p style="font-size:12px;color:var(--text-light)">UPI vs Card vs Cash trends over time</p>
+      </div>
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">📤</div>
+        <h3 style="margin-bottom:4px">Expense Report</h3>
+        <p style="font-size:12px;color:var(--text-light)">Category-wise expenses with GST details</p>
+      </div>
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">📈</div>
+        <h3 style="margin-bottom:4px">Profit & Loss</h3>
+        <p style="font-size:12px;color:var(--text-light)">Monthly / Quarterly P&L statement</p>
+      </div>
+      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
+        <div style="font-size:32px;margin-bottom:8px">👥</div>
+        <h3 style="margin-bottom:4px">Staff Performance</h3>
+        <p style="font-size:12px;color:var(--text-light)">Operator-wise sales & shortage tracking</p>
+      </div>
+    </div>
+
+    <!-- Sample: Cash Collection Report -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:16px">
+        <h3 style="margin:0">Cash Collection Report — June 2026</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 12px">📥 Export Excel</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 12px">🖨️ Print</button>
+        </div>
+      </div>
+      <table>
+        <tr><th>Date</th><th>₹500</th><th>₹200</th><th>₹100</th><th>₹50</th><th>₹20</th><th>₹10</th><th>Coins</th><th>Total Cash</th><th>Digital</th><th>Grand Total</th></tr>
+        <tr><td>01 Jun</td><td>₹1.5L</td><td>₹15K</td><td>₹18K</td><td>₹5K</td><td>₹3K</td><td>₹2K</td><td>₹1K</td><td class="amount">1,94,000</td><td>₹2,80,000</td><td class="amount">4,74,000</td></tr>
+        <tr><td>02 Jun</td><td>₹1.6L</td><td>₹17K</td><td>₹16K</td><td>₹6K</td><td>₹4K</td><td>₹3K</td><td>₹1.5K</td><td class="amount">2,07,500</td><td>₹2,75,000</td><td class="amount">4,82,500</td></tr>
+        <tr><td>03 Jun</td><td>₹1.4L</td><td>₹14K</td><td>₹20K</td><td>₹4K</td><td>₹3K</td><td>₹2.5K</td><td>₹800</td><td class="amount">1,84,300</td><td>₹2,90,000</td><td class="amount">4,74,300</td></tr>
+        <tr><td colspan="8" style="text-align:center;color:var(--text-light)">... more rows ...</td><td></td><td></td><td></td></tr>
+        <tr style="font-weight:700;background:var(--bg)"><td>TOTAL</td><td>₹45L</td><td>₹4.5L</td><td>₹5.4L</td><td>₹1.5L</td><td>₹90K</td><td>₹75K</td><td>₹30K</td><td class="amount">58,45,000</td><td>₹82,50,000</td><td class="amount">1,40,95,000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- GST & TAX -->
+  <div class="screen" id="gst">
+    <h2 style="margin-bottom:20px">🏛️ GST & Income Tax</h2>
+    <div class="info-panel">
+      <h4>Tax Note for Petrol Pump Owners</h4>
+      <p><strong>Petrol & Diesel are outside GST</strong> — they attract VAT + Central Excise. However, CNG/LPG attract GST. Expenses like maintenance, equipment, and services attract GST (Input Tax Credit possible). Income Tax is applicable under Section 44AE / 44AD for presumptive taxation or regular books based on turnover.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>GST Summary — June 2026</h3>
+        <table>
+          <tr><th>Particulars</th><th>Taxable Value</th><th>GST Rate</th><th>GST Amount</th></tr>
+          <tr style="background:#d5f5e3"><td colspan="4"><strong>Output GST (Sales)</strong></td></tr>
+          <tr><td>CNG Sales</td><td>₹2,15,000</td><td>5%</td><td>₹10,750</td></tr>
+          <tr><td>Lubricants Sales</td><td>₹85,000</td><td>18%</td><td>₹15,300</td></tr>
+          <tr style="background:#fdebd0"><td colspan="4"><strong>Input GST (Purchases/Expenses)</strong></td></tr>
+          <tr><td>CNG Purchase</td><td>₹1,80,000</td><td>5%</td><td>₹9,000</td></tr>
+          <tr><td>Equipment / Maintenance</td><td>₹35,000</td><td>18%</td><td>₹6,300</td></tr>
+          <tr><td>Professional Services</td><td>₹20,000</td><td>18%</td><td>₹3,600</td></tr>
+        </table>
+        <div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:8px">
+          <div class="flex-between"><span>Output GST</span><span>₹26,050</span></div>
+          <div class="flex-between"><span>Input GST (ITC)</span><span>₹18,900</span></div>
+          <div class="flex-between" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--border);font-weight:700;font-size:16px">
+            <span>Net GST Payable</span><span style="color:var(--danger)">₹7,150</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Income Tax Estimation — FY 2026-27</h3>
+        <table>
+          <tr><th>Particulars</th><th>Amount</th></tr>
+          <tr><td>Total Turnover (Apr-Jun)</td><td>₹4,22,85,000</td></tr>
+          <tr><td>Less: Fuel Purchase (OMC)</td><td>₹3,95,50,000</td></tr>
+          <tr><td>Gross Margin</td><td style="font-weight:700">₹27,35,000</td></tr>
+          <tr><td>Less: Operating Expenses</td><td>₹12,95,000</td></tr>
+          <tr><td>Net Profit (Before Tax)</td><td style="font-weight:700;color:var(--success)">₹14,40,000</td></tr>
+          <tr><td>Projected Annual Net Profit</td><td style="font-weight:700">₹57,60,000</td></tr>
+        </table>
+        <div style="margin-top:12px;padding:12px;background:#fef9e7;border-radius:8px;border-left:4px solid var(--accent)">
+          <strong>Estimated Tax (New Regime)</strong>
+          <div style="font-size:13px;color:var(--text-light);margin-top:4px">
+            Up to ₹3L → Nil<br>
+            ₹3L - ₹7L → 5% = ₹20,000<br>
+            ₹7L - ₹10L → 10% = ₹30,000<br>
+            ₹10L - ₹12L → 15% = ₹30,000<br>
+            ₹12L - ₹15L → 20% = ₹60,000<br>
+            Above ₹15L → 30%<br>
+          </div>
+          <div style="margin-top:8px;font-size:18px;font-weight:700;color:var(--danger)">
+            Estimated Tax: ~₹7,48,000 + Cess
+          </div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:4px">*Advance Tax due dates: 15 Jun, 15 Sep, 15 Dec, 15 Mar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXCEL INTEGRATION -->
+  <div class="screen" id="excel">
+    <h2 style="margin-bottom:20px">📥 Excel Integration</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Export to Excel</h3>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Download data in Excel format (.xlsx) for your records or CA</p>
+        <div class="form-group">
+          <label>Report Type</label>
+          <select>
+            <option>Daily Sales Report</option>
+            <option>Cash Denomination Report</option>
+            <option>Payment Mode Report</option>
+            <option>Expense Report</option>
+            <option>Profit & Loss Statement</option>
+            <option>GST Summary (for GSTR-3B)</option>
+            <option>Complete Data Dump</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" value="2026-06-01">
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" value="2026-06-30">
+          </div>
+        </div>
+        <button class="btn btn-success" style="width:100%">📥 Download Excel</button>
+      </div>
+
+      <div class="card">
+        <h3>Import from Excel</h3>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Bulk upload historical data from Excel sheets</p>
+        <div style="border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;margin-bottom:16px">
+          <div style="font-size:40px;margin-bottom:8px">📄</div>
+          <p style="font-weight:600">Drag & drop Excel file here</p>
+          <p style="font-size:12px;color:var(--text-light)">or click to browse (.xlsx, .xls, .csv)</p>
+          <button class="btn btn-outline mt-16">Browse Files</button>
+        </div>
+        <button class="btn btn-outline" style="width:100%">📥 Download Import Template</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Auto-Sync with Tally / Busy</h3>
+      <div class="info-panel">
+        <h4>Coming Soon</h4>
+        <p>Direct integration with Tally Prime and Busy Accounting Software for seamless data sync. Your CA can directly access reports.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT -->
+  <div class="screen" id="users">
+    <h2 style="margin-bottom:20px">👥 User Management</h2>
+    <div class="info-panel">
+      <h4>Master Login Only</h4>
+      <p>Only the Master / Owner can manage users. Staff users can only enter daily sales and cash denomination data.</p>
+    </div>
+
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:16px">
+        <h3 style="margin:0">Staff / Operators</h3>
+        <button class="btn btn-primary">+ Add New User</button>
+      </div>
+      <table>
+        <tr><th>Name</th><th>Username</th><th>Role</th><th>Shift</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>
+        <tr>
+          <td><strong>Ramesh Kumar</strong></td><td>ramesh@pump1</td><td>Operator</td><td>Morning</td>
+          <td><span class="status-dot active"></span>Active</td><td>30 Jun, 8:00 AM</td>
+          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
+        </tr>
+        <tr>
+          <td><strong>Sunil Sharma</strong></td><td>sunil@pump1</td><td>Operator</td><td>Afternoon</td>
+          <td><span class="status-dot active"></span>Active</td><td>29 Jun, 2:15 PM</td>
+          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
+        </tr>
+        <tr>
+          <td><strong>Mohd Imran</strong></td><td>imran@pump1</td><td>Operator</td><td>Night</td>
+          <td><span class="status-dot active"></span>Active</td><td>29 Jun, 10:05 PM</td>
+          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
+        </tr>
+        <tr>
+          <td><strong>Priya Verma</strong></td><td>priya@pump1</td><td>Accountant</td><td>—</td>
+          <td><span class="status-dot inactive"></span>Inactive</td><td>25 Jun, 9:30 AM</td>
+          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Role Permissions</h3>
+        <table>
+          <tr><th>Feature</th><th>Master</th><th>Operator</th><th>Accountant</th></tr>
+          <tr><td>Dashboard</td><td>✅ Full</td><td>❌ No</td><td>✅ View Only</td></tr>
+          <tr><td>Daily Sales Entry</td><td>✅</td><td>✅</td><td>❌</td></tr>
+          <tr><td>Cash Denomination</td><td>✅</td><td>✅</td><td>❌</td></tr>
+          <tr><td>Expenses</td><td>✅</td><td>❌</td><td>✅</td></tr>
+          <tr><td>Reports</td><td>✅</td><td>❌</td><td>✅</td></tr>
+          <tr><td>GST & Tax</td><td>✅</td><td>❌</td><td>✅</td></tr>
+          <tr><td>Excel Export/Import</td><td>✅</td><td>❌</td><td>✅</td></tr>
+          <tr><td>User Management</td><td>✅</td><td>❌</td><td>❌</td></tr>
+          <tr><td>Settings</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Add New User</h3>
+        <div class="form-group"><label>Full Name</label><input type="text" placeholder="Enter name"></div>
+        <div class="form-group"><label>Username</label><input type="text" placeholder="e.g. name@pump1"></div>
+        <div class="form-group"><label>Password</label><input type="password" placeholder="Set password"></div>
+        <div class="form-group"><label>Role</label><select><option>Operator</option><option>Accountant</option></select></div>
+        <div class="form-group"><label>Default Shift</label><select><option>Morning</option><option>Afternoon</option><option>Night</option><option>Flexible</option></select></div>
+        <button class="btn btn-primary" style="width:100%">Create User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="settings">
+    <h2 style="margin-bottom:20px">⚙️ Settings</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Pump Details</h3>
+        <div class="form-group"><label>Pump Name</label><input type="text" value="HP Petrol Pump - Jaipur"></div>
+        <div class="form-group"><label>Owner Name</label><input type="text" value="Sunny Kapur"></div>
+        <div class="form-group"><label>GST Number</label><input type="text" value="08AABCU9603R1ZM"></div>
+        <div class="form-group"><label>PAN Number</label><input type="text" value="AABCU9603R"></div>
+        <div class="form-group"><label>Oil Marketing Company</label>
+          <select><option>Hindustan Petroleum (HP)</option><option>Bharat Petroleum (BP)</option><option>Indian Oil (IOC)</option><option>Reliance (RIL)</option><option>Nayara (Essar)</option></select>
+        </div>
+        <div class="form-group"><label>Number of Nozzles</label><input type="number" value="4"></div>
+        <button class="btn btn-primary">Save Settings</button>
+      </div>
+
+      <div class="card">
+        <h3>Fuel Rate Configuration</h3>
+        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px">Update daily fuel rates (auto-fetched from OMC API if available)</p>
+        <table>
+          <tr><th>Fuel Type</th><th>Current Rate (₹/L)</th><th>Effective Date</th></tr>
+          <tr><td>Petrol (MS)</td><td><input type="number" value="104.61" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
+          <tr><td>Diesel (HSD)</td><td><input type="number" value="90.62" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
+          <tr><td>CNG</td><td><input type="number" value="85.56" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
+        </table>
+        <button class="btn btn-primary mt-16">Update Rates</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function doLogin() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  const role = document.getElementById('loginRole').value;
+  document.getElementById('roleLabel').textContent = role === 'master' ? 'Master / Owner' : 'Operator';
+  if (role === 'user') {
+    document.getElementById('navReports').classList.add('hidden');
+    document.getElementById('navGST').classList.add('hidden');
+    document.getElementById('navExcel').classList.add('hidden');
+    document.getElementById('navUsers').classList.add('hidden');
+    document.getElementById('navSettings').classList.add('hidden');
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('mainApp').classList.add('hidden');
+  ['navReports','navGST','navExcel','navUsers','navSettings'].forEach(id => {
+    document.getElementById(id).classList.remove('hidden');
+  });
+}
+
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
