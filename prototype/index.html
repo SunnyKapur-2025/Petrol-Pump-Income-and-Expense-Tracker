@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PetroTrack - Petrol Pump Income & Expense Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PetroTrack — Mobile</title>
 <style>
 :root {
   --primary: #1a5276;
@@ -11,311 +11,340 @@
   --accent: #e67e22;
   --success: #27ae60;
   --danger: #e74c3c;
-  --bg: #f4f6f9;
+  --bg: #f0f2f5;
   --card: #fff;
   --text: #2c3e50;
   --text-light: #7f8c8d;
-  --border: #dfe6e9;
-  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --border: #e0e4e8;
+  --shadow: 0 2px 8px rgba(0,0,0,.06);
+  --radius: 14px;
+  --bottom-nav: 64px;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background:var(--bg); color:var(--text); }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; background:var(--bg); color:var(--text); max-width:430px; margin:0 auto; min-height:100vh; position:relative; overflow-x:hidden; }
 
-/* Navigation */
-.nav-tabs { display:flex; background:var(--primary); overflow-x:auto; position:sticky; top:0; z-index:100; }
-.nav-tabs button { background:none; border:none; color:rgba(255,255,255,.7); padding:14px 22px; cursor:pointer; font-size:14px; white-space:nowrap; border-bottom:3px solid transparent; transition:.2s; }
-.nav-tabs button.active, .nav-tabs button:hover { color:#fff; border-bottom-color:var(--accent); background:rgba(255,255,255,.08); }
+/* Status bar mock */
+.status-bar { background:var(--primary); color:#fff; padding:8px 16px 0; font-size:11px; display:flex; justify-content:space-between; }
 
-/* Screens */
-.screen { display:none; padding:24px; max-width:1200px; margin:0 auto; }
-.screen.active { display:block; }
+/* Top header */
+.top-header { background:var(--primary); color:#fff; padding:12px 16px 14px; display:flex; align-items:center; justify-content:space-between; }
+.top-header h1 { font-size:18px; display:flex; align-items:center; gap:8px; }
+.top-header .right { display:flex; align-items:center; gap:12px; }
+.top-header .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+.top-header .notif { position:relative; font-size:20px; }
+.top-header .notif .dot { position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:var(--danger); border-radius:50%; border:2px solid var(--primary); }
+
+/* Screen container */
+.screen-wrap { padding:0 0 calc(var(--bottom-nav) + 16px) 0; }
+.screen { display:none; padding:16px; }
+.screen.active { display:block; animation:fadeIn .2s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+/* Bottom Navigation */
+.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fff; border-top:1px solid var(--border); display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -2px 12px rgba(0,0,0,.06); }
+.bottom-nav button { flex:1; border:none; background:none; padding:8px 4px 6px; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; color:var(--text-light); cursor:pointer; transition:.15s; }
+.bottom-nav button.active { color:var(--primary); }
+.bottom-nav button .icon { font-size:22px; }
+.bottom-nav button.active .icon { transform:scale(1.1); }
+
+/* More menu overlay */
+.more-menu { position:fixed; bottom:var(--bottom-nav); left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fff; border-radius:20px 20px 0 0; box-shadow:0 -4px 24px rgba(0,0,0,.15); z-index:99; padding:20px 16px calc(8px + env(safe-area-inset-bottom)); display:none; }
+.more-menu.show { display:block; animation:slideUp .25s; }
+@keyframes slideUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
+.more-menu .handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 16px; }
+.more-menu-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.more-menu-item { text-align:center; padding:16px 8px; border-radius:12px; background:var(--bg); cursor:pointer; transition:.15s; }
+.more-menu-item:active { transform:scale(.95); }
+.more-menu-item .icon { font-size:28px; margin-bottom:6px; }
+.more-menu-item .label { font-size:11px; color:var(--text); font-weight:500; }
+.more-overlay { position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:98; display:none; }
+.more-overlay.show { display:block; }
 
 /* Cards */
-.card { background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:24px; margin-bottom:20px; }
-.card h3 { margin-bottom:16px; color:var(--primary); font-size:16px; }
+.card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:12px; }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.card-header h3 { font-size:14px; color:var(--primary); }
+.card-header .badge { font-size:11px; color:var(--primary-light); background:#eaf2f8; padding:3px 8px; border-radius:20px; }
 
-/* Grid */
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
-.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
-@media(max-width:768px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+/* KPI row */
+.kpi-scroll { display:flex; gap:10px; overflow-x:auto; padding:0 16px 4px; margin:0 -16px 12px; scrollbar-width:none; -ms-overflow-style:none; }
+.kpi-scroll::-webkit-scrollbar { display:none; }
+.kpi-card { min-width:140px; border-radius:12px; padding:14px; color:#fff; flex-shrink:0; }
+.kpi-card .value { font-size:20px; font-weight:700; }
+.kpi-card .label { font-size:10px; opacity:.85; margin-top:2px; }
+.kpi-card.blue { background:linear-gradient(135deg,#2980b9,#1a5276); }
+.kpi-card.green { background:linear-gradient(135deg,#27ae60,#1e8449); }
+.kpi-card.orange { background:linear-gradient(135deg,#e67e22,#d35400); }
+.kpi-card.red { background:linear-gradient(135deg,#e74c3c,#c0392b); }
 
-/* KPI Cards */
-.kpi { text-align:center; padding:20px; border-radius:10px; color:#fff; }
-.kpi .value { font-size:28px; font-weight:700; }
-.kpi .label { font-size:12px; opacity:.85; margin-top:4px; }
-.kpi.blue { background:linear-gradient(135deg,#2980b9,#1a5276); }
-.kpi.green { background:linear-gradient(135deg,#27ae60,#1e8449); }
-.kpi.orange { background:linear-gradient(135deg,#e67e22,#d35400); }
-.kpi.red { background:linear-gradient(135deg,#e74c3c,#c0392b); }
-
-/* Forms */
-.form-group { margin-bottom:16px; }
-.form-group label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--text-light); }
-.form-group input, .form-group select { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; }
-.form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary-light); box-shadow:0 0 0 3px rgba(41,128,185,.15); }
+/* Form elements */
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:12px; font-weight:600; color:var(--text-light); margin-bottom:5px; }
+.form-group input, .form-group select { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; background:#fff; appearance:none; -webkit-appearance:none; }
+.form-group select { background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%237f8c8d'/%3E%3C/svg%3E") no-repeat right 14px center #fff; padding-right:36px; }
+.form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary-light); box-shadow:0 0 0 3px rgba(41,128,185,.12); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.input-highlight { background:#eaf2f8 !important; font-weight:700 !important; color:var(--primary) !important; }
+.input-success { background:#d5f5e3 !important; font-weight:700 !important; color:var(--success) !important; font-size:18px !important; }
 
 /* Buttons */
-.btn { padding:10px 24px; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; transition:.2s; }
+.btn { width:100%; padding:14px; border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; transition:.15s; }
+.btn:active { transform:scale(.97); }
 .btn-primary { background:var(--primary); color:#fff; }
-.btn-primary:hover { background:var(--primary-light); }
 .btn-accent { background:var(--accent); color:#fff; }
 .btn-success { background:var(--success); color:#fff; }
-.btn-outline { background:none; border:2px solid var(--primary); color:var(--primary); }
+.btn-outline { background:none; border:2px solid var(--border); color:var(--text); }
+.btn-sm { padding:8px 16px; font-size:13px; width:auto; border-radius:8px; }
+.btn-row { display:flex; gap:8px; }
+.btn-row .btn { flex:1; }
 
 /* Tables */
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th { background:var(--bg); padding:10px 12px; text-align:left; font-weight:600; color:var(--text-light); border-bottom:2px solid var(--border); }
-td { padding:10px 12px; border-bottom:1px solid var(--border); }
-tr:hover td { background:#f8f9fa; }
-
-/* Denomination Grid */
-.denom-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-.denom-item { border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
-.denom-item .note { font-weight:700; color:var(--primary); font-size:16px; }
-.denom-item input { width:60px; text-align:center; margin-top:6px; padding:6px; border:1px solid var(--border); border-radius:6px; }
-
-/* Chart placeholders */
-.chart-placeholder { background:linear-gradient(135deg,#ecf0f1,#dfe6e9); border-radius:10px; height:220px; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:14px; position:relative; overflow:hidden; }
-.chart-placeholder .bar-group { display:flex; align-items:flex-end; gap:8px; height:180px; padding:0 20px; }
-.chart-placeholder .bar { width:30px; border-radius:4px 4px 0 0; transition:.3s; }
-
-/* Login screen */
-.login-overlay { position:fixed; inset:0; background:linear-gradient(135deg,#1a5276,#2980b9); display:flex; align-items:center; justify-content:center; z-index:200; }
-.login-box { background:#fff; border-radius:16px; padding:40px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.3); }
-.login-box h1 { color:var(--primary); margin-bottom:4px; }
-.login-box .subtitle { color:var(--text-light); margin-bottom:24px; font-size:14px; }
-.login-box .logo { font-size:48px; margin-bottom:16px; }
+.table-wrap { overflow-x:auto; margin:0 -16px; padding:0 16px; }
+table { width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap; }
+th { background:var(--bg); padding:8px 10px; text-align:left; font-weight:600; color:var(--text-light); position:sticky; top:0; }
+td { padding:8px 10px; border-bottom:1px solid var(--border); }
 
 /* Tags */
-.tag { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.tag { display:inline-block; padding:3px 8px; border-radius:20px; font-size:10px; font-weight:600; }
 .tag-cash { background:#fdebd0; color:#d35400; }
 .tag-upi { background:#d5f5e3; color:#1e8449; }
 .tag-card { background:#d6eaf8; color:#1a5276; }
 
-/* Toggle */
-.toggle-group { display:flex; background:var(--bg); border-radius:8px; overflow:hidden; margin-bottom:16px; }
-.toggle-group button { flex:1; padding:8px 16px; border:none; background:none; cursor:pointer; font-size:13px; }
-.toggle-group button.active { background:var(--primary); color:#fff; }
+/* Denomination grid */
+.denom-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.denom-item { border:1.5px solid var(--border); border-radius:10px; padding:10px 6px; text-align:center; }
+.denom-item .note { font-weight:700; color:var(--primary); font-size:15px; }
+.denom-item input { width:50px; text-align:center; padding:6px; border:1.5px solid var(--border); border-radius:8px; font-size:15px; margin-top:4px; }
+.denom-item .subtotal { font-size:10px; color:var(--success); font-weight:600; margin-top:3px; }
 
-/* Sidebar info */
-.info-panel { background:#eaf2f8; border-radius:10px; padding:16px; margin-bottom:16px; border-left:4px solid var(--primary-light); }
-.info-panel h4 { color:var(--primary); margin-bottom:6px; }
-.info-panel p { font-size:13px; color:var(--text-light); line-height:1.5; }
+/* Summary card */
+.summary-card { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+.summary-card .big { font-size:28px; font-weight:700; }
+.summary-card .row { display:flex; justify-content:space-between; font-size:13px; margin-top:8px; opacity:.9; }
 
-/* Header bar */
-.header-bar { background:var(--primary); color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; }
-.header-bar h2 { font-size:18px; display:flex; align-items:center; gap:10px; }
-.header-bar .user-info { display:flex; align-items:center; gap:12px; font-size:13px; }
-.header-bar .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; }
+/* Chart mock */
+.chart-mock { display:flex; align-items:flex-end; gap:6px; height:120px; padding:8px 0; }
+.chart-mock .bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; }
+.chart-mock .bar { width:100%; border-radius:4px 4px 0 0; min-height:4px; }
+.chart-mock .bar-label { font-size:9px; color:var(--text-light); margin-top:4px; text-align:center; }
 
-/* Status indicator */
-.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
-.status-dot.active { background:var(--success); }
-.status-dot.inactive { background:var(--danger); }
+/* Info panel */
+.info-panel { background:#eaf2f8; border-radius:10px; padding:12px; margin-bottom:12px; border-left:4px solid var(--primary-light); }
+.info-panel h4 { color:var(--primary); font-size:13px; margin-bottom:4px; }
+.info-panel p { font-size:12px; color:var(--text-light); line-height:1.5; }
+
+/* Section title */
+.section-title { font-size:13px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:.5px; margin:16px 0 8px; }
+
+/* Pill toggle */
+.pill-toggle { display:flex; background:var(--bg); border-radius:10px; padding:3px; margin-bottom:14px; }
+.pill-toggle button { flex:1; padding:8px; border:none; background:none; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-light); transition:.15s; }
+.pill-toggle button.active { background:#fff; color:var(--primary); box-shadow:0 1px 4px rgba(0,0,0,.1); font-weight:600; }
+
+/* Entry list item */
+.entry-item { display:flex; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); gap:12px; }
+.entry-item:last-child { border-bottom:none; }
+.entry-item .icon-circle { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.entry-item .info { flex:1; }
+.entry-item .info .title { font-size:14px; font-weight:600; }
+.entry-item .info .sub { font-size:11px; color:var(--text-light); }
+.entry-item .amount-col { text-align:right; }
+.entry-item .amount-col .amt { font-size:15px; font-weight:700; }
+.entry-item .amount-col .status { font-size:10px; }
+
+/* Report card grid */
+.report-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.report-card { background:var(--bg); border-radius:12px; padding:14px; text-align:center; cursor:pointer; transition:.15s; border:2px solid transparent; }
+.report-card:active { transform:scale(.96); border-color:var(--primary-light); }
+.report-card .icon { font-size:28px; margin-bottom:6px; }
+.report-card .name { font-size:12px; font-weight:600; }
+
+/* Login */
+.login-screen { position:fixed; inset:0; background:linear-gradient(160deg,#1a5276 0%,#2980b9 50%,#1a5276 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:200; padding:24px; }
+.login-card { background:#fff; border-radius:20px; padding:32px 24px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.login-card .logo { font-size:48px; text-align:center; margin-bottom:8px; }
+.login-card h1 { text-align:center; color:var(--primary); font-size:24px; }
+.login-card .sub { text-align:center; color:var(--text-light); font-size:13px; margin-bottom:24px; }
 
 .hidden { display:none !important; }
-.mt-16 { margin-top:16px; }
-.mb-8 { margin-bottom:8px; }
-.text-right { text-align:right; }
-.text-center { text-align:center; }
-.flex-between { display:flex; justify-content:space-between; align-items:center; }
-.amount { font-weight:700; color:var(--success); }
-.amount::before { content:'₹'; }
+
+/* Floating action button */
+.fab { position:fixed; bottom:calc(var(--bottom-nav) + 16px); right:max(16px, calc((100vw - 430px)/2 + 16px)); width:56px; height:56px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:28px; box-shadow:0 4px 16px rgba(230,126,34,.4); cursor:pointer; z-index:50; display:flex; align-items:center; justify-content:center; }
+.fab:active { transform:scale(.9); }
+
+/* Date chip */
+.date-chip { display:inline-flex; align-items:center; gap:6px; background:#fff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500; box-shadow:var(--shadow); margin-bottom:12px; }
+
+/* Profit indicator */
+.profit-up { color:var(--success); }
+.profit-down { color:var(--danger); }
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div class="login-overlay" id="loginScreen">
-  <div class="login-box text-center">
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
     <div class="logo">⛽</div>
     <h1>PetroTrack</h1>
-    <p class="subtitle">Petrol Pump Income & Expense Tracker</p>
+    <p class="sub">Petrol Pump Income & Expense Tracker</p>
     <div class="form-group">
-      <label style="text-align:left">Login As</label>
+      <label>Login As</label>
       <select id="loginRole">
-        <option value="master">🔑 Master / Owner Login</option>
-        <option value="user">👤 Operator / Staff Login</option>
+        <option value="master">🔑 Master / Owner</option>
+        <option value="user">👤 Operator / Staff</option>
       </select>
     </div>
     <div class="form-group">
-      <label style="text-align:left">Username</label>
-      <input type="text" placeholder="Enter username" value="owner@pump1">
+      <label>Mobile / Username</label>
+      <input type="text" placeholder="Enter mobile or username" value="9876543210">
     </div>
     <div class="form-group">
-      <label style="text-align:left">Password</label>
-      <input type="password" placeholder="Enter password" value="••••••••">
+      <label>Password / OTP</label>
+      <input type="password" placeholder="Enter password" value="password">
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:14px" onclick="doLogin()">Login →</button>
-    <p style="margin-top:16px;font-size:12px;color:var(--text-light)">Powered by PetroTrack India &bull; v1.0</p>
+    <button class="btn btn-primary" onclick="doLogin()" style="margin-bottom:10px">Login</button>
+    <button class="btn btn-outline" style="font-size:13px">Login with OTP</button>
+    <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-light)">PetroTrack India v1.0</p>
   </div>
 </div>
 
 <!-- MAIN APP -->
 <div id="mainApp" class="hidden">
+
   <!-- Header -->
-  <div class="header-bar">
-    <h2>⛽ PetroTrack <span style="font-size:12px;opacity:.7;font-weight:400" id="roleLabel">Master</span></h2>
-    <div class="user-info">
-      <span id="pumpName">HP Petrol Pump - Jaipur</span>
-      <div class="avatar">SK</div>
-      <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;padding:6px 12px;font-size:12px" onclick="logout()">Logout</button>
+  <div class="status-bar">
+    <span>9:41 AM</span>
+    <span>LTE  85%</span>
+  </div>
+  <div class="top-header">
+    <h1>⛽ PetroTrack</h1>
+    <div class="right">
+      <div class="notif" onclick="alert('Notifications:\n- Shortage Rs.500 on Nozzle 2\n- Advance Tax due 15 Sep')">🔔<div class="dot"></div></div>
+      <div class="avatar" onclick="logout()">SK</div>
     </div>
   </div>
 
-  <!-- Nav -->
-  <div class="nav-tabs" id="navTabs">
-    <button class="active" onclick="showScreen('dashboard',this)">📊 Dashboard</button>
-    <button onclick="showScreen('dailySales',this)">⛽ Daily Sales Entry</button>
-    <button onclick="showScreen('cashDenom',this)">💵 Cash Denomination</button>
-    <button onclick="showScreen('expenses',this)">📤 Expenses</button>
-    <button onclick="showScreen('reports',this)" id="navReports">📋 Reports</button>
-    <button onclick="showScreen('gst',this)" id="navGST">🏛️ GST & Tax</button>
-    <button onclick="showScreen('excel',this)" id="navExcel">📥 Excel Integration</button>
-    <button onclick="showScreen('users',this)" id="navUsers">👥 User Management</button>
-    <button onclick="showScreen('settings',this)" id="navSettings">⚙️ Settings</button>
-  </div>
+  <div class="screen-wrap">
 
-  <!-- DASHBOARD -->
-  <div class="screen active" id="dashboard">
-    <div class="flex-between mb-8">
-      <h2>Dashboard Overview</h2>
-      <div>
-        <select style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
-          <option>Today - 30 Jun 2026</option>
-          <option>Yesterday</option>
-          <option>This Week</option>
-          <option>This Month</option>
-          <option>Custom Range</option>
-        </select>
-      </div>
-    </div>
+    <!-- ===== DASHBOARD ===== -->
+    <div class="screen active" id="s-dashboard">
+      <div class="date-chip">📅 Today, 30 Jun 2026 <span style="color:var(--primary-light)">▾</span></div>
 
-    <!-- KPIs -->
-    <div class="grid-4" style="margin-bottom:20px">
-      <div class="kpi blue">
-        <div class="value">₹4,85,200</div>
-        <div class="label">Today's Total Sales</div>
-      </div>
-      <div class="kpi green">
-        <div class="value">₹2,10,500</div>
-        <div class="label">Cash Collection</div>
-      </div>
-      <div class="kpi orange">
-        <div class="value">₹2,74,700</div>
-        <div class="label">Digital (UPI/Card)</div>
-      </div>
-      <div class="kpi red">
-        <div class="value">₹32,400</div>
-        <div class="label">Today's Expenses</div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <!-- Fuel-wise Sales -->
-      <div class="card">
-        <h3>Fuel-wise Sales Today</h3>
-        <table>
-          <tr><th>Fuel</th><th>Litres</th><th>Rate/L</th><th>Amount</th></tr>
-          <tr><td>Petrol (MS)</td><td>3,200 L</td><td>₹104.61</td><td class="amount">3,34,752</td></tr>
-          <tr><td>Diesel (HSD)</td><td>1,580 L</td><td>₹90.62</td><td class="amount">1,43,180</td></tr>
-          <tr><td>CNG</td><td>85 Kg</td><td>₹85.56</td><td class="amount">7,268</td></tr>
-        </table>
-        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
-          <strong>Total</strong><strong class="amount" style="font-size:18px">4,85,200</strong>
+      <!-- KPIs -->
+      <div class="kpi-scroll">
+        <div class="kpi-card blue">
+          <div class="value">₹4.85L</div>
+          <div class="label">Total Sales</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="value">₹2.10L</div>
+          <div class="label">Cash</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="value">₹2.74L</div>
+          <div class="label">Digital (UPI/Card)</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="value">₹32.4K</div>
+          <div class="label">Expenses</div>
         </div>
       </div>
 
-      <!-- Payment Mode Breakdown -->
+      <!-- Fuel Sales -->
       <div class="card">
-        <h3>Collection by Payment Mode</h3>
-        <div class="chart-placeholder">
-          <div class="bar-group">
-            <div style="text-align:center">
-              <div class="bar" style="height:140px;background:var(--accent);width:50px"></div>
-              <div style="font-size:11px;margin-top:6px;font-weight:600">Cash<br>₹2.1L</div>
-            </div>
-            <div style="text-align:center">
-              <div class="bar" style="height:100px;background:var(--success);width:50px"></div>
-              <div style="font-size:11px;margin-top:6px;font-weight:600">UPI<br>₹1.5L</div>
-            </div>
-            <div style="text-align:center">
-              <div class="bar" style="height:80px;background:var(--primary-light);width:50px"></div>
-              <div style="font-size:11px;margin-top:6px;font-weight:600">Card<br>₹1.2L</div>
-            </div>
-            <div style="text-align:center">
-              <div class="bar" style="height:20px;background:#8e44ad;width:50px"></div>
-              <div style="font-size:11px;margin-top:6px;font-weight:600">Credit<br>₹0.1L</div>
-            </div>
+        <div class="card-header">
+          <h3>⛽ Fuel Sales</h3>
+          <span class="badge">Today</span>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#fdebd0">🟠</div>
+          <div class="info">
+            <div class="title">Petrol (MS)</div>
+            <div class="sub">3,200 L × ₹104.61/L</div>
+          </div>
+          <div class="amount-col">
+            <div class="amt profit-up">₹3,34,752</div>
+          </div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d6eaf8">🔵</div>
+          <div class="info">
+            <div class="title">Diesel (HSD)</div>
+            <div class="sub">1,580 L × ₹90.62/L</div>
+          </div>
+          <div class="amount-col">
+            <div class="amt profit-up">₹1,43,180</div>
+          </div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d5f5e3">🟢</div>
+          <div class="info">
+            <div class="title">CNG</div>
+            <div class="sub">85 Kg × ₹85.56/Kg</div>
+          </div>
+          <div class="amount-col">
+            <div class="amt profit-up">₹7,268</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Split -->
+      <div class="card">
+        <div class="card-header">
+          <h3>💳 Payment Modes</h3>
+          <span class="badge">Today</span>
+        </div>
+        <div class="chart-mock">
+          <div class="bar-wrap"><div class="bar" style="height:90px;background:var(--accent)"></div><div class="bar-label">Cash<br><b>₹2.1L</b></div></div>
+          <div class="bar-wrap"><div class="bar" style="height:70px;background:var(--success)"></div><div class="bar-label">UPI<br><b>₹1.5L</b></div></div>
+          <div class="bar-wrap"><div class="bar" style="height:55px;background:var(--primary-light)"></div><div class="bar-label">Card<br><b>₹1.2L</b></div></div>
+          <div class="bar-wrap"><div class="bar" style="height:15px;background:#8e44ad"></div><div class="bar-label">Credit<br><b>₹0.1L</b></div></div>
+        </div>
+      </div>
+
+      <!-- Weekly Trend -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📈 This Week</h3>
+        </div>
+        <div class="chart-mock" style="height:100px">
+          <div class="bar-wrap"><div class="bar" style="height:65px;background:var(--primary-light)"></div><div class="bar-label">M</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:72px;background:var(--primary-light)"></div><div class="bar-label">T</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:58px;background:var(--primary-light)"></div><div class="bar-label">W</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:80px;background:var(--primary-light)"></div><div class="bar-label">T</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:68px;background:var(--primary-light)"></div><div class="bar-label">F</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:90px;background:var(--accent)"></div><div class="bar-label">S</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:85px;background:var(--primary-light)"></div><div class="bar-label">S</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Shortages -->
+      <div class="card" style="border-left:4px solid var(--danger)">
+        <div class="card-header"><h3>⚠️ Shortages Today</h3></div>
+        <div class="entry-item" style="border:none;padding:4px 0">
+          <div class="info">
+            <div class="title">Nozzle 2 — Afternoon Shift</div>
+            <div class="sub">Operator: Sunil &bull; 2:30 PM</div>
+          </div>
+          <div class="amount-col">
+            <div class="amt profit-down">-₹500</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="grid-2">
-      <!-- Cash Denomination Summary -->
-      <div class="card">
-        <h3>💵 Cash Denomination Summary</h3>
-        <table>
-          <tr><th>Denomination</th><th>Count</th><th>Amount</th></tr>
-          <tr><td>₹500 Notes</td><td>320</td><td class="amount">1,60,000</td></tr>
-          <tr><td>₹200 Notes</td><td>85</td><td class="amount">17,000</td></tr>
-          <tr><td>₹100 Notes</td><td>180</td><td class="amount">18,000</td></tr>
-          <tr><td>₹50 Notes</td><td>120</td><td class="amount">6,000</td></tr>
-          <tr><td>₹20 Notes</td><td>200</td><td class="amount">4,000</td></tr>
-          <tr><td>₹10 Notes/Coins</td><td>350</td><td class="amount">3,500</td></tr>
-          <tr><td>₹5 & ₹20 Coins</td><td>400</td><td class="amount">2,000</td></tr>
-        </table>
-        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
-          <strong>Total Cash</strong><strong class="amount" style="font-size:18px">2,10,500</strong>
-        </div>
+    <!-- ===== DAILY SALES ENTRY ===== -->
+    <div class="screen" id="s-sales">
+      <h2 style="font-size:18px;margin-bottom:12px">⛽ Sales Entry</h2>
+
+      <div class="pill-toggle">
+        <button class="active">New Entry</button>
+        <button>Today's Log</button>
       </div>
 
-      <!-- Recent Expenses -->
       <div class="card">
-        <h3>📤 Recent Expenses</h3>
-        <table>
-          <tr><th>Description</th><th>Category</th><th>Amount</th></tr>
-          <tr><td>Electricity Bill</td><td>Utilities</td><td style="color:var(--danger);font-weight:600">₹12,500</td></tr>
-          <tr><td>Staff Salary - Ram</td><td>Salary</td><td style="color:var(--danger);font-weight:600">₹8,000</td></tr>
-          <tr><td>Pump Maintenance</td><td>Maintenance</td><td style="color:var(--danger);font-weight:600">₹5,400</td></tr>
-          <tr><td>Water Supply</td><td>Utilities</td><td style="color:var(--danger);font-weight:600">₹2,500</td></tr>
-          <tr><td>Stationery</td><td>Office</td><td style="color:var(--danger);font-weight:600">₹1,200</td></tr>
-          <tr><td>Tea/Snacks</td><td>Miscellaneous</td><td style="color:var(--danger);font-weight:600">₹2,800</td></tr>
-        </table>
-      </div>
-    </div>
-
-    <!-- Weekly Trend -->
-    <div class="card">
-      <h3>📈 Weekly Sales Trend</h3>
-      <div class="chart-placeholder" style="height:180px">
-        <div class="bar-group">
-          <div style="text-align:center"><div class="bar" style="height:120px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Mon<br>₹4.2L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:130px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Tue<br>₹4.5L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:110px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Wed<br>₹3.9L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:140px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Thu<br>₹4.8L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:125px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Fri<br>₹4.3L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:150px;background:var(--accent);width:40px"></div><div style="font-size:10px;margin-top:4px">Sat<br>₹5.1L</div></div>
-          <div style="text-align:center"><div class="bar" style="height:145px;background:var(--primary-light);width:40px"></div><div style="font-size:10px;margin-top:4px">Sun<br>₹4.9L</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAILY SALES ENTRY -->
-  <div class="screen" id="dailySales">
-    <h2 style="margin-bottom:20px">⛽ Daily Sales Entry</h2>
-    <div class="info-panel">
-      <h4>📝 Operator Entry Screen</h4>
-      <p>Staff/operators enter shift-wise fuel sales and collections here. All entries are date & shift stamped automatically.</p>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>Shift & Pump Details</h3>
-        <div class="grid-2">
+        <div class="form-row">
           <div class="form-group">
             <label>Date</label>
             <input type="date" value="2026-06-30">
@@ -323,227 +352,221 @@ tr:hover td { background:#f8f9fa; }
           <div class="form-group">
             <label>Shift</label>
             <select>
-              <option>Morning (6 AM - 2 PM)</option>
-              <option>Afternoon (2 PM - 10 PM)</option>
-              <option>Night (10 PM - 6 AM)</option>
+              <option>Morning</option>
+              <option>Afternoon</option>
+              <option>Night</option>
             </select>
           </div>
         </div>
+
         <div class="form-group">
           <label>Nozzle / Dispenser</label>
           <select>
-            <option>Nozzle 1 - Petrol (MS)</option>
-            <option>Nozzle 2 - Petrol (MS)</option>
-            <option>Nozzle 3 - Diesel (HSD)</option>
-            <option>Nozzle 4 - Diesel (HSD)</option>
+            <option>Nozzle 1 — Petrol (MS)</option>
+            <option>Nozzle 2 — Petrol (MS)</option>
+            <option>Nozzle 3 — Diesel (HSD)</option>
+            <option>Nozzle 4 — Diesel (HSD)</option>
             <option>CNG Dispenser</option>
           </select>
         </div>
-        <div class="grid-2">
+
+        <div class="form-row">
           <div class="form-group">
-            <label>Opening Meter Reading</label>
-            <input type="number" placeholder="e.g. 45230" value="45230">
+            <label>Opening Reading</label>
+            <input type="number" placeholder="45230" value="45230">
           </div>
           <div class="form-group">
-            <label>Closing Meter Reading</label>
-            <input type="number" placeholder="e.g. 46012" value="46012">
+            <label>Closing Reading</label>
+            <input type="number" placeholder="46012" value="46012">
           </div>
         </div>
-        <div class="grid-2">
+
+        <div class="form-row">
           <div class="form-group">
-            <label>Total Litres Sold</label>
-            <input type="number" value="782" style="background:#eaf2f8;font-weight:700" readonly>
+            <label>Litres Sold</label>
+            <input type="text" value="782" class="input-highlight" readonly>
           </div>
           <div class="form-group">
-            <label>Rate per Litre (₹)</label>
+            <label>Rate per Litre</label>
             <input type="number" value="104.61">
           </div>
         </div>
+
         <div class="form-group">
-          <label>Total Sale Amount (₹)</label>
-          <input type="text" value="₹81,805.02" style="background:#d5f5e3;font-weight:700;font-size:18px" readonly>
+          <label>Total Sale Amount</label>
+          <input type="text" value="₹81,805" class="input-success" readonly>
         </div>
       </div>
 
+      <!-- Collection -->
       <div class="card">
-        <h3>💳 Collection Breakdown</h3>
-        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px">Enter amount received through each payment mode</p>
+        <h3 style="font-size:14px;color:var(--primary);margin-bottom:12px">💳 Collection</h3>
 
         <div class="form-group">
-          <label>💵 Cash Received (₹)</label>
+          <label>💵 Cash</label>
           <input type="number" placeholder="0" value="35000">
         </div>
         <div class="form-group">
-          <label>📱 UPI Received (₹) — PhonePe / GPay / Paytm / BHIM</label>
+          <label>📱 UPI (PhonePe / GPay / Paytm)</label>
           <input type="number" placeholder="0" value="28500">
         </div>
         <div class="form-group">
-          <label>💳 Card Payment Received (₹) — Debit / Credit</label>
+          <label>💳 Card (Debit / Credit)</label>
           <input type="number" placeholder="0" value="15305">
         </div>
         <div class="form-group">
-          <label>📒 Credit Sale (₹) — Fleet / Corporate Account</label>
+          <label>📒 Credit (Fleet / Corporate)</label>
           <input type="number" placeholder="0" value="3000">
         </div>
-        <div class="form-group">
-          <label>Total Collection (₹)</label>
-          <input type="text" value="₹81,805" style="background:#d5f5e3;font-weight:700;font-size:18px" readonly>
+
+        <div style="background:#d5f5e3;padding:10px;border-radius:10px;text-align:center;font-weight:600;color:var(--success);font-size:13px;margin-bottom:12px">
+          ✅ Matched — No shortage
         </div>
-        <div style="background:#d5f5e3;padding:10px;border-radius:8px;text-align:center;font-weight:600;color:var(--success)">
-          ✅ Collection matches Sale Amount — No shortage
+
+        <div class="btn-row">
+          <button class="btn btn-primary">💾 Save</button>
+          <button class="btn btn-outline">+ Nozzle</button>
         </div>
-        <div style="margin-top:16px;display:flex;gap:10px">
-          <button class="btn btn-primary" style="flex:1">💾 Save Entry</button>
-          <button class="btn btn-outline">+ Add Another Nozzle</button>
+      </div>
+
+      <!-- Today's log -->
+      <div class="section-title">Today's Entries</div>
+      <div class="card" style="padding:8px 12px">
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#fdebd0;font-size:14px">⛽</div>
+          <div class="info">
+            <div class="title">Nozzle 1 — Petrol</div>
+            <div class="sub">Morning &bull; 782L &bull; <span class="tag tag-cash">Cash ₹35K</span> <span class="tag tag-upi">UPI ₹28K</span></div>
+          </div>
+          <div class="amount-col">
+            <div class="amt" style="color:var(--success)">₹81.8K</div>
+            <div class="status" style="color:var(--success)">✅</div>
+          </div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d6eaf8;font-size:14px">⛽</div>
+          <div class="info">
+            <div class="title">Nozzle 3 — Diesel</div>
+            <div class="sub">Morning &bull; 1200L &bull; <span class="tag tag-cash">Cash ₹45K</span> <span class="tag tag-upi">UPI ₹39K</span></div>
+          </div>
+          <div class="amount-col">
+            <div class="amt" style="color:var(--success)">₹1.08L</div>
+            <div class="status" style="color:var(--success)">✅</div>
+          </div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#fadbd8;font-size:14px">⛽</div>
+          <div class="info">
+            <div class="title">Nozzle 2 — Petrol</div>
+            <div class="sub">Afternoon &bull; 650L</div>
+          </div>
+          <div class="amount-col">
+            <div class="amt" style="color:var(--danger)">₹68K</div>
+            <div class="status" style="color:var(--danger)">⚠️ -₹500</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Today's entries -->
-    <div class="card">
-      <h3>Today's Entries</h3>
-      <table>
-        <tr><th>Time</th><th>Shift</th><th>Nozzle</th><th>Fuel</th><th>Litres</th><th>Amount</th><th>Cash</th><th>UPI</th><th>Card</th><th>Credit</th><th>Status</th></tr>
-        <tr>
-          <td>08:15 AM</td><td>Morning</td><td>Nozzle 1</td><td>Petrol</td><td>782</td>
-          <td class="amount">81,805</td>
-          <td><span class="tag tag-cash">₹35,000</span></td>
-          <td><span class="tag tag-upi">₹28,500</span></td>
-          <td><span class="tag tag-card">₹15,305</span></td>
-          <td>₹3,000</td>
-          <td style="color:var(--success)">✅ Matched</td>
-        </tr>
-        <tr>
-          <td>08:20 AM</td><td>Morning</td><td>Nozzle 3</td><td>Diesel</td><td>1,200</td>
-          <td class="amount">1,08,744</td>
-          <td><span class="tag tag-cash">₹45,000</span></td>
-          <td><span class="tag tag-upi">₹38,744</span></td>
-          <td><span class="tag tag-card">₹25,000</span></td>
-          <td>₹0</td>
-          <td style="color:var(--success)">✅ Matched</td>
-        </tr>
-        <tr>
-          <td>02:30 PM</td><td>Afternoon</td><td>Nozzle 2</td><td>Petrol</td><td>650</td>
-          <td class="amount">68,000</td>
-          <td><span class="tag tag-cash">₹30,000</span></td>
-          <td><span class="tag tag-upi">₹22,000</span></td>
-          <td><span class="tag tag-card">₹14,500</span></td>
-          <td>₹1,500</td>
-          <td style="color:var(--danger)">⚠️ Short ₹500</td>
-        </tr>
-      </table>
-    </div>
-  </div>
+    <!-- ===== CASH DENOMINATION ===== -->
+    <div class="screen" id="s-cash">
+      <h2 style="font-size:18px;margin-bottom:12px">💵 Cash Denomination</h2>
 
-  <!-- CASH DENOMINATION -->
-  <div class="screen" id="cashDenom">
-    <h2 style="margin-bottom:20px">💵 Cash Denomination Entry</h2>
-    <div class="info-panel">
-      <h4>Cash Counting Sheet</h4>
-      <p>Enter the count of each denomination collected during the shift. This helps in daily cash reconciliation and bank deposit preparation.</p>
-    </div>
+      <div class="info-panel">
+        <h4>Shift Cash Count</h4>
+        <p>Count notes and coins received during your shift for bank deposit preparation.</p>
+      </div>
 
-    <div class="grid-2">
       <div class="card">
-        <h3>Currency Notes</h3>
+        <h3 style="font-size:14px;color:var(--primary);margin-bottom:10px">Currency Notes</h3>
         <div class="denom-grid">
           <div class="denom-item">
             <div class="note">₹500</div>
-            <div>Count</div>
-            <input type="number" value="320" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹1,60,000</div>
+            <input type="number" value="320">
+            <div class="subtotal">₹1,60,000</div>
           </div>
           <div class="denom-item">
             <div class="note">₹200</div>
-            <div>Count</div>
-            <input type="number" value="85" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹17,000</div>
+            <input type="number" value="85">
+            <div class="subtotal">₹17,000</div>
           </div>
           <div class="denom-item">
             <div class="note">₹100</div>
-            <div>Count</div>
-            <input type="number" value="180" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹18,000</div>
+            <input type="number" value="180">
+            <div class="subtotal">₹18,000</div>
           </div>
           <div class="denom-item">
             <div class="note">₹50</div>
-            <div>Count</div>
-            <input type="number" value="120" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹6,000</div>
+            <input type="number" value="120">
+            <div class="subtotal">₹6,000</div>
           </div>
           <div class="denom-item">
             <div class="note">₹20</div>
-            <div>Count</div>
-            <input type="number" value="200" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹4,000</div>
+            <input type="number" value="200">
+            <div class="subtotal">₹4,000</div>
           </div>
           <div class="denom-item">
             <div class="note">₹10</div>
-            <div>Count</div>
-            <input type="number" value="350" onchange="calcDenom()">
-            <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹3,500</div>
+            <input type="number" value="350">
+            <div class="subtotal">₹3,500</div>
           </div>
         </div>
       </div>
 
-      <div>
-        <div class="card">
-          <h3>Coins</h3>
-          <div class="denom-grid" style="grid-template-columns:1fr 1fr 1fr">
-            <div class="denom-item">
-              <div class="note">₹20</div>
-              <div>Coins</div>
-              <input type="number" value="30">
-              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹600</div>
-            </div>
-            <div class="denom-item">
-              <div class="note">₹10</div>
-              <div>Coins</div>
-              <input type="number" value="50">
-              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹500</div>
-            </div>
-            <div class="denom-item">
-              <div class="note">₹5</div>
-              <div>Coins</div>
-              <input type="number" value="80">
-              <div style="margin-top:4px;font-size:12px;color:var(--success);font-weight:600">= ₹400</div>
-            </div>
+      <div class="card">
+        <h3 style="font-size:14px;color:var(--primary);margin-bottom:10px">Coins</h3>
+        <div class="denom-grid">
+          <div class="denom-item">
+            <div class="note">₹20</div>
+            <input type="number" value="30">
+            <div class="subtotal">₹600</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹10</div>
+            <input type="number" value="50">
+            <div class="subtotal">₹500</div>
+          </div>
+          <div class="denom-item">
+            <div class="note">₹5</div>
+            <input type="number" value="80">
+            <div class="subtotal">₹400</div>
           </div>
         </div>
+      </div>
 
-        <div class="card" style="background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff">
-          <h3 style="color:#fff">Total Cash Summary</h3>
-          <div style="font-size:36px;font-weight:700;margin:16px 0">₹2,10,000</div>
-          <div style="display:flex;gap:20px;font-size:13px;opacity:.85">
-            <div>Notes: ₹2,08,500</div>
-            <div>Coins: ₹1,500</div>
-          </div>
-          <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.3)">
-            <div class="flex-between" style="font-size:14px">
-              <span>Expected Cash (from sales):</span><span>₹2,10,500</span>
-            </div>
-            <div class="flex-between" style="font-size:14px;margin-top:8px">
-              <span>Difference:</span>
-              <span style="color:#e74c3c;font-weight:700">-₹500 (Short)</span>
-            </div>
-          </div>
+      <!-- Total -->
+      <div class="summary-card">
+        <div style="text-align:center">
+          <div style="font-size:12px;opacity:.8">Total Cash Counted</div>
+          <div class="big">₹2,10,000</div>
         </div>
+        <div class="row"><span>Notes</span><span>₹2,08,500</span></div>
+        <div class="row"><span>Coins</span><span>₹1,500</span></div>
+        <div class="row" style="border-top:1px solid rgba(255,255,255,.3);padding-top:8px;margin-top:8px">
+          <span>Expected (from sales)</span><span>₹2,10,500</span>
+        </div>
+        <div class="row" style="font-weight:700">
+          <span>Difference</span><span style="color:#f1c40f">-₹500 Short</span>
+        </div>
+      </div>
 
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-accent" style="flex:1">💾 Save Denomination</button>
-          <button class="btn" style="background:rgba(255,255,255,.9);border:1px solid var(--border)">🖨️ Print Slip</button>
-        </div>
+      <div class="btn-row">
+        <button class="btn btn-accent">💾 Save</button>
+        <button class="btn btn-outline">🖨️ Print Slip</button>
       </div>
     </div>
-  </div>
 
-  <!-- EXPENSES -->
-  <div class="screen" id="expenses">
-    <h2 style="margin-bottom:20px">📤 Expense Management</h2>
-    <div class="grid-2">
+    <!-- ===== EXPENSES ===== -->
+    <div class="screen" id="s-expenses">
+      <h2 style="font-size:18px;margin-bottom:12px">📤 Expenses</h2>
+
+      <div class="pill-toggle">
+        <button class="active">Add New</button>
+        <button>This Month</button>
+      </div>
+
       <div class="card">
-        <h3>Add New Expense</h3>
-        <div class="grid-2">
+        <div class="form-row">
           <div class="form-group">
             <label>Date</label>
             <input type="date" value="2026-06-30">
@@ -555,13 +578,9 @@ tr:hover td { background:#f8f9fa; }
               <option>Electricity</option>
               <option>Pump Maintenance</option>
               <option>Rent</option>
-              <option>Water</option>
+              <option>Fuel Purchase (OMC)</option>
               <option>Insurance</option>
-              <option>Vehicle Expense</option>
-              <option>Office Supplies</option>
-              <option>Fuel Purchase (from OMC)</option>
-              <option>Bank Charges</option>
-              <option>Government Fees / License</option>
+              <option>Govt Fees / License</option>
               <option>Miscellaneous</option>
             </select>
           </div>
@@ -570,16 +589,16 @@ tr:hover td { background:#f8f9fa; }
           <label>Description</label>
           <input type="text" placeholder="e.g. Monthly electricity bill">
         </div>
-        <div class="grid-2">
+        <div class="form-row">
           <div class="form-group">
-            <label>Amount (₹)</label>
+            <label>Amount</label>
             <input type="number" placeholder="0">
           </div>
           <div class="form-group">
             <label>Payment Mode</label>
             <select>
               <option>Cash</option>
-              <option>Bank Transfer (NEFT/RTGS)</option>
+              <option>Bank Transfer</option>
               <option>UPI</option>
               <option>Cheque</option>
             </select>
@@ -589,160 +608,128 @@ tr:hover td { background:#f8f9fa; }
           <label>GST Applicable?</label>
           <select>
             <option>No</option>
-            <option>Yes - 5%</option>
-            <option>Yes - 12%</option>
-            <option>Yes - 18%</option>
-            <option>Yes - 28%</option>
+            <option>5%</option>
+            <option>12%</option>
+            <option>18%</option>
+            <option>28%</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Bill / Invoice Upload</label>
-          <input type="file" style="padding:8px">
+          <label>Upload Bill</label>
+          <input type="file" style="padding:10px;font-size:13px">
         </div>
         <button class="btn btn-primary">💾 Save Expense</button>
       </div>
 
-      <div class="card">
-        <h3>Monthly Expense Summary - June 2026</h3>
-        <table>
-          <tr><th>Category</th><th>Amount</th><th>% of Total</th></tr>
-          <tr><td>Fuel Purchase (OMC)</td><td style="color:var(--danger);font-weight:600">₹38,50,000</td><td>89.2%</td></tr>
-          <tr><td>Staff Salary</td><td style="color:var(--danger);font-weight:600">₹1,20,000</td><td>2.8%</td></tr>
-          <tr><td>Electricity</td><td style="color:var(--danger);font-weight:600">₹45,000</td><td>1.0%</td></tr>
-          <tr><td>Maintenance</td><td style="color:var(--danger);font-weight:600">₹35,000</td><td>0.8%</td></tr>
-          <tr><td>Rent</td><td style="color:var(--danger);font-weight:600">₹50,000</td><td>1.2%</td></tr>
-          <tr><td>Others</td><td style="color:var(--danger);font-weight:600">₹2,15,000</td><td>5.0%</td></tr>
-        </table>
-        <div style="margin-top:12px;padding-top:12px;border-top:2px solid var(--border)" class="flex-between">
-          <strong>Total Expenses</strong><strong style="color:var(--danger);font-size:18px">₹43,15,000</strong>
+      <!-- Recent expenses -->
+      <div class="section-title">Recent</div>
+      <div class="card" style="padding:8px 12px">
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#fdebd0">⚡</div>
+          <div class="info"><div class="title">Electricity Bill</div><div class="sub">Utilities &bull; 28 Jun</div></div>
+          <div class="amount-col"><div class="amt profit-down">-₹12,500</div></div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d5f5e3">👤</div>
+          <div class="info"><div class="title">Salary — Ramesh</div><div class="sub">Salary &bull; 25 Jun</div></div>
+          <div class="amount-col"><div class="amt profit-down">-₹8,000</div></div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d6eaf8">🔧</div>
+          <div class="info"><div class="title">Pump Maintenance</div><div class="sub">Maintenance &bull; 22 Jun</div></div>
+          <div class="amount-col"><div class="amt profit-down">-₹5,400</div></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- REPORTS -->
-  <div class="screen" id="reports">
-    <h2 style="margin-bottom:20px">📋 Reports & Analytics</h2>
-    <div class="grid-3" style="margin-bottom:20px">
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">📊</div>
-        <h3 style="margin-bottom:4px">Daily Sales Report</h3>
-        <p style="font-size:12px;color:var(--text-light)">Fuel-wise, nozzle-wise, shift-wise breakdown</p>
-      </div>
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">💵</div>
-        <h3 style="margin-bottom:4px">Cash Collection Report</h3>
-        <p style="font-size:12px;color:var(--text-light)">Denomination-wise cash for any period</p>
-      </div>
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">💳</div>
-        <h3 style="margin-bottom:4px">Payment Mode Report</h3>
-        <p style="font-size:12px;color:var(--text-light)">UPI vs Card vs Cash trends over time</p>
-      </div>
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">📤</div>
-        <h3 style="margin-bottom:4px">Expense Report</h3>
-        <p style="font-size:12px;color:var(--text-light)">Category-wise expenses with GST details</p>
-      </div>
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">📈</div>
-        <h3 style="margin-bottom:4px">Profit & Loss</h3>
-        <p style="font-size:12px;color:var(--text-light)">Monthly / Quarterly P&L statement</p>
-      </div>
-      <div class="card text-center" style="cursor:pointer;border:2px solid transparent;transition:.2s" onmouseover="this.style.borderColor='var(--primary-light)'" onmouseout="this.style.borderColor='transparent'">
-        <div style="font-size:32px;margin-bottom:8px">👥</div>
-        <h3 style="margin-bottom:4px">Staff Performance</h3>
-        <p style="font-size:12px;color:var(--text-light)">Operator-wise sales & shortage tracking</p>
-      </div>
-    </div>
+    <!-- ===== REPORTS ===== -->
+    <div class="screen" id="s-reports">
+      <h2 style="font-size:18px;margin-bottom:12px">📋 Reports</h2>
 
-    <!-- Sample: Cash Collection Report -->
-    <div class="card">
-      <div class="flex-between" style="margin-bottom:16px">
-        <h3 style="margin:0">Cash Collection Report — June 2026</h3>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 12px">📥 Export Excel</button>
-          <button class="btn btn-outline" style="font-size:12px;padding:6px 12px">🖨️ Print</button>
+      <div class="report-grid" style="margin-bottom:12px">
+        <div class="report-card"><div class="icon">📊</div><div class="name">Daily Sales</div></div>
+        <div class="report-card"><div class="icon">💵</div><div class="name">Cash Collection</div></div>
+        <div class="report-card"><div class="icon">💳</div><div class="name">Payment Modes</div></div>
+        <div class="report-card"><div class="icon">📤</div><div class="name">Expenses</div></div>
+        <div class="report-card"><div class="icon">📈</div><div class="name">Profit & Loss</div></div>
+        <div class="report-card"><div class="icon">👥</div><div class="name">Staff Report</div></div>
+      </div>
+
+      <!-- Sample report -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Cash Report — Jun 2026</h3>
+          <button class="btn-sm btn-outline">📥 Excel</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Date</th><th>₹500</th><th>₹200</th><th>₹100</th><th>₹50</th><th>Coins</th><th>Total</th></tr>
+            <tr><td>01</td><td>₹1.5L</td><td>₹15K</td><td>₹18K</td><td>₹5K</td><td>₹1K</td><td style="font-weight:700;color:var(--success)">₹1.89L</td></tr>
+            <tr><td>02</td><td>₹1.6L</td><td>₹17K</td><td>₹16K</td><td>₹6K</td><td>₹1.5K</td><td style="font-weight:700;color:var(--success)">₹2.01L</td></tr>
+            <tr><td>03</td><td>₹1.4L</td><td>₹14K</td><td>₹20K</td><td>₹4K</td><td>₹800</td><td style="font-weight:700;color:var(--success)">₹1.79L</td></tr>
+          </table>
         </div>
       </div>
-      <table>
-        <tr><th>Date</th><th>₹500</th><th>₹200</th><th>₹100</th><th>₹50</th><th>₹20</th><th>₹10</th><th>Coins</th><th>Total Cash</th><th>Digital</th><th>Grand Total</th></tr>
-        <tr><td>01 Jun</td><td>₹1.5L</td><td>₹15K</td><td>₹18K</td><td>₹5K</td><td>₹3K</td><td>₹2K</td><td>₹1K</td><td class="amount">1,94,000</td><td>₹2,80,000</td><td class="amount">4,74,000</td></tr>
-        <tr><td>02 Jun</td><td>₹1.6L</td><td>₹17K</td><td>₹16K</td><td>₹6K</td><td>₹4K</td><td>₹3K</td><td>₹1.5K</td><td class="amount">2,07,500</td><td>₹2,75,000</td><td class="amount">4,82,500</td></tr>
-        <tr><td>03 Jun</td><td>₹1.4L</td><td>₹14K</td><td>₹20K</td><td>₹4K</td><td>₹3K</td><td>₹2.5K</td><td>₹800</td><td class="amount">1,84,300</td><td>₹2,90,000</td><td class="amount">4,74,300</td></tr>
-        <tr><td colspan="8" style="text-align:center;color:var(--text-light)">... more rows ...</td><td></td><td></td><td></td></tr>
-        <tr style="font-weight:700;background:var(--bg)"><td>TOTAL</td><td>₹45L</td><td>₹4.5L</td><td>₹5.4L</td><td>₹1.5L</td><td>₹90K</td><td>₹75K</td><td>₹30K</td><td class="amount">58,45,000</td><td>₹82,50,000</td><td class="amount">1,40,95,000</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- GST & TAX -->
-  <div class="screen" id="gst">
-    <h2 style="margin-bottom:20px">🏛️ GST & Income Tax</h2>
-    <div class="info-panel">
-      <h4>Tax Note for Petrol Pump Owners</h4>
-      <p><strong>Petrol & Diesel are outside GST</strong> — they attract VAT + Central Excise. However, CNG/LPG attract GST. Expenses like maintenance, equipment, and services attract GST (Input Tax Credit possible). Income Tax is applicable under Section 44AE / 44AD for presumptive taxation or regular books based on turnover.</p>
     </div>
 
-    <div class="grid-2">
+    <!-- ===== GST & TAX ===== -->
+    <div class="screen" id="s-gst">
+      <h2 style="font-size:18px;margin-bottom:12px">🏛️ GST & Tax</h2>
+
+      <div class="info-panel">
+        <h4>Note</h4>
+        <p>Petrol & Diesel are <b>outside GST</b> (VAT + Excise). CNG/LPG/Lubricants attract GST. Expenses with GST give you Input Tax Credit.</p>
+      </div>
+
+      <div class="pill-toggle">
+        <button class="active">GST</button>
+        <button>Income Tax</button>
+      </div>
+
       <div class="card">
-        <h3>GST Summary — June 2026</h3>
-        <table>
-          <tr><th>Particulars</th><th>Taxable Value</th><th>GST Rate</th><th>GST Amount</th></tr>
-          <tr style="background:#d5f5e3"><td colspan="4"><strong>Output GST (Sales)</strong></td></tr>
-          <tr><td>CNG Sales</td><td>₹2,15,000</td><td>5%</td><td>₹10,750</td></tr>
-          <tr><td>Lubricants Sales</td><td>₹85,000</td><td>18%</td><td>₹15,300</td></tr>
-          <tr style="background:#fdebd0"><td colspan="4"><strong>Input GST (Purchases/Expenses)</strong></td></tr>
-          <tr><td>CNG Purchase</td><td>₹1,80,000</td><td>5%</td><td>₹9,000</td></tr>
-          <tr><td>Equipment / Maintenance</td><td>₹35,000</td><td>18%</td><td>₹6,300</td></tr>
-          <tr><td>Professional Services</td><td>₹20,000</td><td>18%</td><td>₹3,600</td></tr>
-        </table>
-        <div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:8px">
-          <div class="flex-between"><span>Output GST</span><span>₹26,050</span></div>
-          <div class="flex-between"><span>Input GST (ITC)</span><span>₹18,900</span></div>
-          <div class="flex-between" style="margin-top:8px;padding-top:8px;border-top:2px solid var(--border);font-weight:700;font-size:16px">
-            <span>Net GST Payable</span><span style="color:var(--danger)">₹7,150</span>
-          </div>
+        <div class="card-header"><h3>GST — June 2026</h3></div>
+        <div class="entry-item">
+          <div class="info"><div class="title" style="color:var(--success)">Output GST</div><div class="sub">CNG + Lubricants</div></div>
+          <div class="amount-col"><div class="amt" style="color:var(--text)">₹26,050</div></div>
+        </div>
+        <div class="entry-item">
+          <div class="info"><div class="title" style="color:var(--accent)">Input GST (ITC)</div><div class="sub">Purchases + Services</div></div>
+          <div class="amount-col"><div class="amt" style="color:var(--text)">₹18,900</div></div>
+        </div>
+        <div style="background:var(--bg);padding:12px;border-radius:10px;text-align:center;margin-top:8px">
+          <div style="font-size:12px;color:var(--text-light)">Net GST Payable</div>
+          <div style="font-size:22px;font-weight:700;color:var(--danger)">₹7,150</div>
         </div>
       </div>
 
       <div class="card">
-        <h3>Income Tax Estimation — FY 2026-27</h3>
-        <table>
-          <tr><th>Particulars</th><th>Amount</th></tr>
-          <tr><td>Total Turnover (Apr-Jun)</td><td>₹4,22,85,000</td></tr>
-          <tr><td>Less: Fuel Purchase (OMC)</td><td>₹3,95,50,000</td></tr>
-          <tr><td>Gross Margin</td><td style="font-weight:700">₹27,35,000</td></tr>
-          <tr><td>Less: Operating Expenses</td><td>₹12,95,000</td></tr>
-          <tr><td>Net Profit (Before Tax)</td><td style="font-weight:700;color:var(--success)">₹14,40,000</td></tr>
-          <tr><td>Projected Annual Net Profit</td><td style="font-weight:700">₹57,60,000</td></tr>
-        </table>
-        <div style="margin-top:12px;padding:12px;background:#fef9e7;border-radius:8px;border-left:4px solid var(--accent)">
-          <strong>Estimated Tax (New Regime)</strong>
-          <div style="font-size:13px;color:var(--text-light);margin-top:4px">
-            Up to ₹3L → Nil<br>
-            ₹3L - ₹7L → 5% = ₹20,000<br>
-            ₹7L - ₹10L → 10% = ₹30,000<br>
-            ₹10L - ₹12L → 15% = ₹30,000<br>
-            ₹12L - ₹15L → 20% = ₹60,000<br>
-            Above ₹15L → 30%<br>
-          </div>
-          <div style="margin-top:8px;font-size:18px;font-weight:700;color:var(--danger)">
-            Estimated Tax: ~₹7,48,000 + Cess
-          </div>
-          <div style="font-size:12px;color:var(--text-light);margin-top:4px">*Advance Tax due dates: 15 Jun, 15 Sep, 15 Dec, 15 Mar</div>
+        <div class="card-header"><h3>Income Tax — FY 26-27</h3></div>
+        <div class="entry-item">
+          <div class="info"><div class="title">Turnover (Apr-Jun)</div></div>
+          <div class="amount-col"><div class="amt" style="color:var(--text)">₹4.22 Cr</div></div>
+        </div>
+        <div class="entry-item">
+          <div class="info"><div class="title">Net Profit (Projected Annual)</div></div>
+          <div class="amount-col"><div class="amt profit-up">₹57.6L</div></div>
+        </div>
+        <div style="background:#fef9e7;padding:12px;border-radius:10px;margin-top:8px;border-left:4px solid var(--accent)">
+          <div style="font-size:12px;font-weight:600;color:var(--accent)">Estimated Tax (New Regime)</div>
+          <div style="font-size:20px;font-weight:700;color:var(--danger);margin-top:4px">~₹7,48,000</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px">Next Advance Tax: 15 Sep 2026</div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- EXCEL INTEGRATION -->
-  <div class="screen" id="excel">
-    <h2 style="margin-bottom:20px">📥 Excel Integration</h2>
-    <div class="grid-2">
+    <!-- ===== EXCEL ===== -->
+    <div class="screen" id="s-excel">
+      <h2 style="font-size:18px;margin-bottom:12px">📥 Excel</h2>
+
+      <div class="pill-toggle">
+        <button class="active">Export</button>
+        <button>Import</button>
+      </div>
+
       <div class="card">
-        <h3>Export to Excel</h3>
-        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Download data in Excel format (.xlsx) for your records or CA</p>
         <div class="form-group">
           <label>Report Type</label>
           <select>
@@ -750,140 +737,151 @@ tr:hover td { background:#f8f9fa; }
             <option>Cash Denomination Report</option>
             <option>Payment Mode Report</option>
             <option>Expense Report</option>
-            <option>Profit & Loss Statement</option>
-            <option>GST Summary (for GSTR-3B)</option>
-            <option>Complete Data Dump</option>
+            <option>Profit & Loss</option>
+            <option>GST Summary (GSTR-3B)</option>
+            <option>Complete Data</option>
           </select>
         </div>
-        <div class="grid-2">
+        <div class="form-row">
           <div class="form-group">
-            <label>From Date</label>
+            <label>From</label>
             <input type="date" value="2026-06-01">
           </div>
           <div class="form-group">
-            <label>To Date</label>
+            <label>To</label>
             <input type="date" value="2026-06-30">
           </div>
         </div>
-        <button class="btn btn-success" style="width:100%">📥 Download Excel</button>
+        <button class="btn btn-success">📥 Download Excel (.xlsx)</button>
       </div>
 
-      <div class="card">
-        <h3>Import from Excel</h3>
-        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Bulk upload historical data from Excel sheets</p>
-        <div style="border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;margin-bottom:16px">
-          <div style="font-size:40px;margin-bottom:8px">📄</div>
-          <p style="font-weight:600">Drag & drop Excel file here</p>
-          <p style="font-size:12px;color:var(--text-light)">or click to browse (.xlsx, .xls, .csv)</p>
-          <button class="btn btn-outline mt-16">Browse Files</button>
-        </div>
-        <button class="btn btn-outline" style="width:100%">📥 Download Import Template</button>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:40px;margin-bottom:8px">📄</div>
+        <div style="font-weight:600;margin-bottom:4px">Import from Excel</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:12px">Upload .xlsx / .csv for bulk data</div>
+        <button class="btn btn-outline">Browse Files</button>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Auto-Sync with Tally / Busy</h3>
+    <!-- ===== USERS ===== -->
+    <div class="screen" id="s-users">
+      <h2 style="font-size:18px;margin-bottom:12px">👥 Users</h2>
+
       <div class="info-panel">
-        <h4>Coming Soon</h4>
-        <p>Direct integration with Tally Prime and Busy Accounting Software for seamless data sync. Your CA can directly access reports.</p>
+        <h4>Master Only</h4>
+        <p>Only the owner can manage users. Staff can only enter sales and cash denomination data.</p>
       </div>
-    </div>
-  </div>
 
-  <!-- USER MANAGEMENT -->
-  <div class="screen" id="users">
-    <h2 style="margin-bottom:20px">👥 User Management</h2>
-    <div class="info-panel">
-      <h4>Master Login Only</h4>
-      <p>Only the Master / Owner can manage users. Staff users can only enter daily sales and cash denomination data.</p>
-    </div>
-
-    <div class="card">
-      <div class="flex-between" style="margin-bottom:16px">
-        <h3 style="margin:0">Staff / Operators</h3>
-        <button class="btn btn-primary">+ Add New User</button>
-      </div>
-      <table>
-        <tr><th>Name</th><th>Username</th><th>Role</th><th>Shift</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>
-        <tr>
-          <td><strong>Ramesh Kumar</strong></td><td>ramesh@pump1</td><td>Operator</td><td>Morning</td>
-          <td><span class="status-dot active"></span>Active</td><td>30 Jun, 8:00 AM</td>
-          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
-        </tr>
-        <tr>
-          <td><strong>Sunil Sharma</strong></td><td>sunil@pump1</td><td>Operator</td><td>Afternoon</td>
-          <td><span class="status-dot active"></span>Active</td><td>29 Jun, 2:15 PM</td>
-          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
-        </tr>
-        <tr>
-          <td><strong>Mohd Imran</strong></td><td>imran@pump1</td><td>Operator</td><td>Night</td>
-          <td><span class="status-dot active"></span>Active</td><td>29 Jun, 10:05 PM</td>
-          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
-        </tr>
-        <tr>
-          <td><strong>Priya Verma</strong></td><td>priya@pump1</td><td>Accountant</td><td>—</td>
-          <td><span class="status-dot inactive"></span>Inactive</td><td>25 Jun, 9:30 AM</td>
-          <td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px">Edit</button></td>
-        </tr>
-      </table>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>Role Permissions</h3>
-        <table>
-          <tr><th>Feature</th><th>Master</th><th>Operator</th><th>Accountant</th></tr>
-          <tr><td>Dashboard</td><td>✅ Full</td><td>❌ No</td><td>✅ View Only</td></tr>
-          <tr><td>Daily Sales Entry</td><td>✅</td><td>✅</td><td>❌</td></tr>
-          <tr><td>Cash Denomination</td><td>✅</td><td>✅</td><td>❌</td></tr>
-          <tr><td>Expenses</td><td>✅</td><td>❌</td><td>✅</td></tr>
-          <tr><td>Reports</td><td>✅</td><td>❌</td><td>✅</td></tr>
-          <tr><td>GST & Tax</td><td>✅</td><td>❌</td><td>✅</td></tr>
-          <tr><td>Excel Export/Import</td><td>✅</td><td>❌</td><td>✅</td></tr>
-          <tr><td>User Management</td><td>✅</td><td>❌</td><td>❌</td></tr>
-          <tr><td>Settings</td><td>✅</td><td>❌</td><td>❌</td></tr>
-        </table>
-      </div>
-      <div class="card">
-        <h3>Add New User</h3>
-        <div class="form-group"><label>Full Name</label><input type="text" placeholder="Enter name"></div>
-        <div class="form-group"><label>Username</label><input type="text" placeholder="e.g. name@pump1"></div>
-        <div class="form-group"><label>Password</label><input type="password" placeholder="Set password"></div>
-        <div class="form-group"><label>Role</label><select><option>Operator</option><option>Accountant</option></select></div>
-        <div class="form-group"><label>Default Shift</label><select><option>Morning</option><option>Afternoon</option><option>Night</option><option>Flexible</option></select></div>
-        <button class="btn btn-primary" style="width:100%">Create User</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
-  <div class="screen" id="settings">
-    <h2 style="margin-bottom:20px">⚙️ Settings</h2>
-    <div class="grid-2">
-      <div class="card">
-        <h3>Pump Details</h3>
-        <div class="form-group"><label>Pump Name</label><input type="text" value="HP Petrol Pump - Jaipur"></div>
-        <div class="form-group"><label>Owner Name</label><input type="text" value="Sunny Kapur"></div>
-        <div class="form-group"><label>GST Number</label><input type="text" value="08AABCU9603R1ZM"></div>
-        <div class="form-group"><label>PAN Number</label><input type="text" value="AABCU9603R"></div>
-        <div class="form-group"><label>Oil Marketing Company</label>
-          <select><option>Hindustan Petroleum (HP)</option><option>Bharat Petroleum (BP)</option><option>Indian Oil (IOC)</option><option>Reliance (RIL)</option><option>Nayara (Essar)</option></select>
+      <div class="card" style="padding:8px 12px">
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d5f5e3">👤</div>
+          <div class="info">
+            <div class="title">Ramesh Kumar</div>
+            <div class="sub">Operator &bull; Morning &bull; <span style="color:var(--success)">● Active</span></div>
+          </div>
+          <div class="amount-col"><button class="btn-sm btn-outline">Edit</button></div>
         </div>
-        <div class="form-group"><label>Number of Nozzles</label><input type="number" value="4"></div>
-        <button class="btn btn-primary">Save Settings</button>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#d5f5e3">👤</div>
+          <div class="info">
+            <div class="title">Sunil Sharma</div>
+            <div class="sub">Operator &bull; Afternoon &bull; <span style="color:var(--success)">● Active</span></div>
+          </div>
+          <div class="amount-col"><button class="btn-sm btn-outline">Edit</button></div>
+        </div>
+        <div class="entry-item">
+          <div class="icon-circle" style="background:#fadbd8">👤</div>
+          <div class="info">
+            <div class="title">Priya Verma</div>
+            <div class="sub">Accountant &bull; <span style="color:var(--danger)">● Inactive</span></div>
+          </div>
+          <div class="amount-col"><button class="btn-sm btn-outline">Edit</button></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-bottom:16px">+ Add New User</button>
+
+      <!-- Permissions -->
+      <div class="section-title">Permissions</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <tr><th>Feature</th><th>Owner</th><th>Staff</th><th>CA</th></tr>
+            <tr><td>Dashboard</td><td>✅</td><td>❌</td><td>👁️</td></tr>
+            <tr><td>Sales Entry</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td>Cash Count</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td>Expenses</td><td>✅</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Reports</td><td>✅</td><td>❌</td><td>✅</td></tr>
+            <tr><td>GST & Tax</td><td>✅</td><td>❌</td><td>✅</td></tr>
+            <tr><td>Users</td><td>✅</td><td>❌</td><td>❌</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div class="screen" id="s-settings">
+      <h2 style="font-size:18px;margin-bottom:12px">⚙️ Settings</h2>
+
+      <div class="card">
+        <h3 style="font-size:14px;color:var(--primary);margin-bottom:10px">Pump Details</h3>
+        <div class="form-group"><label>Pump Name</label><input type="text" value="HP Petrol Pump - Jaipur"></div>
+        <div class="form-group"><label>Owner</label><input type="text" value="Sunny Kapur"></div>
+        <div class="form-row">
+          <div class="form-group"><label>GSTIN</label><input type="text" value="08AABCU9603R1ZM"></div>
+          <div class="form-group"><label>PAN</label><input type="text" value="AABCU9603R"></div>
+        </div>
+        <div class="form-group">
+          <label>Oil Company</label>
+          <select><option>Hindustan Petroleum (HP)</option><option>Bharat Petroleum</option><option>Indian Oil</option><option>Nayara</option></select>
+        </div>
       </div>
 
       <div class="card">
-        <h3>Fuel Rate Configuration</h3>
-        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px">Update daily fuel rates (auto-fetched from OMC API if available)</p>
-        <table>
-          <tr><th>Fuel Type</th><th>Current Rate (₹/L)</th><th>Effective Date</th></tr>
-          <tr><td>Petrol (MS)</td><td><input type="number" value="104.61" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
-          <tr><td>Diesel (HSD)</td><td><input type="number" value="90.62" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
-          <tr><td>CNG</td><td><input type="number" value="85.56" style="width:100px;padding:4px 8px"></td><td>30 Jun 2026</td></tr>
-        </table>
-        <button class="btn btn-primary mt-16">Update Rates</button>
+        <h3 style="font-size:14px;color:var(--primary);margin-bottom:10px">Fuel Rates</h3>
+        <div class="entry-item">
+          <div class="info"><div class="title">Petrol (MS)</div><div class="sub">Effective 30 Jun</div></div>
+          <div class="amount-col"><input type="number" value="104.61" style="width:80px;padding:6px;border:1.5px solid var(--border);border-radius:8px;text-align:right;font-size:15px;font-weight:600"></div>
+        </div>
+        <div class="entry-item">
+          <div class="info"><div class="title">Diesel (HSD)</div><div class="sub">Effective 30 Jun</div></div>
+          <div class="amount-col"><input type="number" value="90.62" style="width:80px;padding:6px;border:1.5px solid var(--border);border-radius:8px;text-align:right;font-size:15px;font-weight:600"></div>
+        </div>
+        <div class="entry-item" style="border:none">
+          <div class="info"><div class="title">CNG</div><div class="sub">Effective 30 Jun</div></div>
+          <div class="amount-col"><input type="number" value="85.56" style="width:80px;padding:6px;border:1.5px solid var(--border);border-radius:8px;text-align:right;font-size:15px;font-weight:600"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px">Save Rates</button>
       </div>
+
+      <button class="btn btn-outline" style="color:var(--danger);border-color:var(--danger);margin-top:8px" onclick="logout()">Logout</button>
+    </div>
+
+  </div><!-- screen-wrap -->
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="navTo('s-sales')">+</button>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="active" onclick="navTo('s-dashboard',this)"><span class="icon">📊</span>Home</button>
+    <button onclick="navTo('s-sales',this)"><span class="icon">⛽</span>Sales</button>
+    <button onclick="navTo('s-cash',this)"><span class="icon">💵</span>Cash</button>
+    <button onclick="navTo('s-expenses',this)" id="navExpenses"><span class="icon">📤</span>Expense</button>
+    <button onclick="toggleMore()" id="moreBtn"><span class="icon">☰</span>More</button>
+  </div>
+
+  <!-- More Menu -->
+  <div class="more-overlay" id="moreOverlay" onclick="toggleMore()"></div>
+  <div class="more-menu" id="moreMenu">
+    <div class="handle"></div>
+    <div class="more-menu-grid">
+      <div class="more-menu-item" onclick="navTo('s-reports');toggleMore()"><div class="icon">📋</div><div class="label">Reports</div></div>
+      <div class="more-menu-item" onclick="navTo('s-gst');toggleMore()"><div class="icon">🏛️</div><div class="label">GST & Tax</div></div>
+      <div class="more-menu-item" onclick="navTo('s-excel');toggleMore()"><div class="icon">📥</div><div class="label">Excel</div></div>
+      <div class="more-menu-item" id="menuUsers" onclick="navTo('s-users');toggleMore()"><div class="icon">👥</div><div class="label">Users</div></div>
+      <div class="more-menu-item" onclick="navTo('s-settings');toggleMore()"><div class="icon">⚙️</div><div class="label">Settings</div></div>
+      <div class="more-menu-item" onclick="alert('WhatsApp daily summary coming soon!')"><div class="icon">📱</div><div class="label">WhatsApp</div></div>
     </div>
   </div>
 
@@ -893,30 +891,37 @@ tr:hover td { background:#f8f9fa; }
 function doLogin() {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
-  const role = document.getElementById('loginRole').value;
-  document.getElementById('roleLabel').textContent = role === 'master' ? 'Master / Owner' : 'Operator';
+  var role = document.getElementById('loginRole').value;
   if (role === 'user') {
-    document.getElementById('navReports').classList.add('hidden');
-    document.getElementById('navGST').classList.add('hidden');
-    document.getElementById('navExcel').classList.add('hidden');
-    document.getElementById('navUsers').classList.add('hidden');
-    document.getElementById('navSettings').classList.add('hidden');
+    document.getElementById('navExpenses').classList.add('hidden');
+    document.getElementById('menuUsers').classList.add('hidden');
   }
 }
 
 function logout() {
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('mainApp').classList.add('hidden');
-  ['navReports','navGST','navExcel','navUsers','navSettings'].forEach(id => {
-    document.getElementById(id).classList.remove('hidden');
-  });
+  document.getElementById('navExpenses').classList.remove('hidden');
+  document.getElementById('menuUsers').classList.remove('hidden');
 }
 
-function showScreen(id, btn) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+function navTo(id, btn) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+  var btns = document.querySelectorAll('.bottom-nav button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  if (btn) { btn.classList.add('active'); }
+  else {
+    var map = {'s-dashboard':0,'s-sales':1,'s-cash':2,'s-expenses':3};
+    if (map[id] !== undefined) btns[map[id]].classList.add('active');
+  }
+  window.scrollTo(0,0);
+}
+
+function toggleMore() {
+  document.getElementById('moreMenu').classList.toggle('show');
+  document.getElementById('moreOverlay').classList.toggle('show');
 }
 </script>
 </body>
